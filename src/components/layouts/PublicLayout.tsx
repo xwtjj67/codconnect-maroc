@@ -14,7 +14,7 @@ const PublicHeader = () => {
           <Link to="/affiliate-signup" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             إنشاء حساب
           </Link>
-          <Link to="/dashboard" className="text-sm px-4 py-2 rounded-lg gradient-teal text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+          <Link to="/login" className="text-sm px-4 py-2 rounded-lg gradient-teal text-primary-foreground font-medium hover:opacity-90 transition-opacity">
             تسجيل الدخول
           </Link>
         </div>

@@ -1,9 +1,38 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AffiliateSignup = () => {
   const [form, setForm] = useState({ name: "", phone: "", city: "", whatsapp: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signupAffiliate } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!form.name.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
+      setError("يرجى ملء جميع الحقول");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("كلمة السر يجب أن تكون 6 أحرف على الأقل");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signupAffiliate(form);
+      navigate("/affiliate/dashboard", { replace: true });
+    } catch (err: any) {
+      setError(err.message || "فشل إنشاء الحساب");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <PublicLayout>
@@ -13,7 +42,14 @@ const AffiliateSignup = () => {
             <h1 className="text-2xl font-bold">افتح حسابك كمسوق في CodConnect</h1>
             <p className="text-sm text-muted-foreground">سجل مجانا وابدأ في الربح من العمولات</p>
           </div>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {[
               { label: "الاسم الكامل", key: "name", type: "text", placeholder: "أدخل اسمك الكامل" },
               { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX" },
@@ -32,13 +68,17 @@ const AffiliateSignup = () => {
                 />
               </div>
             ))}
-            <button type="submit" className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
-              إنشاء حساب
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? "جاري الإنشاء..." : "إنشاء حساب"}
             </button>
           </form>
           <p className="text-center text-sm text-muted-foreground">
             عندك حساب؟{" "}
-            <Link to="/dashboard" className="text-primary hover:underline">تسجيل الدخول</Link>
+            <Link to="/login" className="text-primary hover:underline">تسجيل الدخول</Link>
           </p>
           <p className="text-center text-sm text-muted-foreground">
             <Link to="/merchant-signup" className="text-accent hover:underline">سجل كتاجر بدلا من ذلك</Link>
