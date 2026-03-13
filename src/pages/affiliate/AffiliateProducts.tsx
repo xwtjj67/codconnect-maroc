@@ -1,4 +1,4 @@
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import ProductCard from "@/components/shared/ProductCard";
 import { useState } from "react";
 
@@ -13,13 +13,12 @@ const products = [
   { image: "/placeholder.svg", name: "ساعة رقمية", price: "179 DH", commission: "45 DH", category: "منتجات ترند" },
 ];
 
-const Products = () => {
+const AffiliateProducts = () => {
   const [activeCategory, setActiveCategory] = useState("الكل");
-
   const filtered = activeCategory === "الكل" ? products : products.filter((p) => p.category === activeCategory);
 
   return (
-    <DashboardLayout>
+    <AffiliateLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">منتجات متاحة للبيع</h1>
         <div className="flex flex-wrap gap-2">
@@ -43,8 +42,8 @@ const Products = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </AffiliateLayout>
   );
 };
 
-export default Products;
+export default AffiliateProducts;

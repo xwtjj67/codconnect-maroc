@@ -1,8 +1,8 @@
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { Copy, Trophy, Users, DollarSign } from "lucide-react";
 import { useState } from "react";
 
-const Referral = () => {
+const AffiliateReferrals = () => {
   const [copied, setCopied] = useState(false);
   const referralLink = "codconnect.ma/ref/username";
 
@@ -19,11 +19,10 @@ const Referral = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <AffiliateLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">برنامج الإحالة</h1>
+        <h1 className="text-2xl font-bold">برنامج الإحالات</h1>
 
-        {/* Referral link */}
         <div className="glass-card p-6 space-y-4">
           <h2 className="font-semibold">رابط الإحالة ديالك</h2>
           <div className="flex items-center gap-3">
@@ -37,7 +36,6 @@ const Referral = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="glass-card p-5 flex items-center gap-4">
             <div className="h-12 w-12 rounded-xl gradient-teal flex items-center justify-center text-primary-foreground">
@@ -59,7 +57,6 @@ const Referral = () => {
           </div>
         </div>
 
-        {/* Leaderboard */}
         <div className="glass-card p-6 space-y-4">
           <h2 className="font-semibold flex items-center gap-2">
             <Trophy className="h-5 w-5 text-accent" />
@@ -69,7 +66,7 @@ const Referral = () => {
             {leaderboard.map((user, i) => (
               <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30">
                 <span className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  i === 0 ? "bg-accent/20 text-accent" : i === 1 ? "bg-muted text-muted-foreground" : "bg-muted text-muted-foreground"
+                  i === 0 ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
                 }`}>
                   {i + 1}
                 </span>
@@ -83,8 +80,8 @@ const Referral = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </AffiliateLayout>
   );
 };
 
-export default Referral;
+export default AffiliateReferrals;

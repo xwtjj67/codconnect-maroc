@@ -1,37 +1,33 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Users, GraduationCap, HeadphonesIcon, LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { LayoutDashboard, Package, ShoppingCart, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
 const sidebarItems = [
-  { title: "لوحة التحكم", url: "/dashboard", icon: LayoutDashboard },
-  { title: "المنتجات", url: "/products", icon: Package },
-  { title: "الطلبات", url: "/orders", icon: ShoppingCart },
-  { title: "الإحالة", url: "/referral", icon: Users },
-  { title: "التدريب", url: "/training", icon: GraduationCap },
-  { title: "الدعم", url: "/support", icon: HeadphonesIcon },
+  { title: "لوحة التحكم", url: "/merchant/dashboard", icon: LayoutDashboard },
+  { title: "المنتجات", url: "/merchant/products", icon: Package },
+  { title: "الطلبات", url: "/merchant/orders", icon: ShoppingCart },
+  { title: "التحليلات", url: "/merchant/analytics", icon: BarChart3 },
 ];
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
-
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+const MerchantLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={`fixed lg:static inset-y-0 right-0 z-50 w-64 bg-sidebar border-l border-sidebar-border flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}>
         <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
-          <img src={codconnectLogo} alt="CodConnect" className="h-8 w-auto" />
+          <div className="flex items-center gap-2">
+            <img src={codconnectLogo} alt="CodConnect" className="h-8 w-auto" />
+            <span className="gold-badge text-[10px]">تاجر</span>
+          </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground">
             <X className="h-5 w-5" />
           </button>
@@ -57,33 +53,30 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           })}
         </nav>
         <div className="p-3 border-t border-sidebar-border">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
           >
             <LogOut className="h-5 w-5" />
             <span>تسجيل الخروج</span>
-          </Link>
+          </button>
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-border/50 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground">
             <Menu className="h-5 w-5" />
           </button>
-          <span className="text-sm text-muted-foreground">مرحبا بك في CodConnect</span>
-          <div className="h-8 w-8 rounded-full gradient-teal flex items-center justify-center text-primary-foreground text-xs font-bold">
-            U
+          <span className="text-sm text-muted-foreground">مرحبا، {user?.name || "تاجر"}</span>
+          <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xs font-bold">
+            {user?.name?.charAt(0) || "T"}
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
       </div>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default MerchantLayout;

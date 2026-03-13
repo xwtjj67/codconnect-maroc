@@ -1,9 +1,38 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MerchantSignup = () => {
-  const [form, setForm] = useState({ name: "", store: "", phone: "", city: "", whatsapp: "", password: "" });
+  const [form, setForm] = useState({ name: "", storeName: "", phone: "", city: "", whatsapp: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signupMerchant } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!form.name.trim() || !form.storeName.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
+      setError("يرجى ملء جميع الحقول");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("كلمة السر يجب أن تكون 6 أحرف على الأقل");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signupMerchant(form);
+      navigate("/merchant/dashboard", { replace: true });
+    } catch (err: any) {
+      setError(err.message || "فشل إنشاء الحساب");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <PublicLayout>
@@ -13,10 +42,17 @@ const MerchantSignup = () => {
             <h1 className="text-2xl font-bold">افتح حسابك كتاجر وأضف منتجاتك</h1>
             <p className="text-sm text-muted-foreground">وسع مبيعاتك عبر شبكة مسوقين CodConnect</p>
           </div>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {[
               { label: "الاسم الكامل", key: "name", type: "text", placeholder: "أدخل اسمك الكامل" },
-              { label: "اسم المتجر", key: "store", type: "text", placeholder: "اسم متجرك" },
+              { label: "اسم المتجر", key: "storeName", type: "text", placeholder: "اسم متجرك" },
               { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX" },
               { label: "المدينة", key: "city", type: "text", placeholder: "مثال: الدار البيضاء" },
               { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "رقم واتساب" },
@@ -33,13 +69,17 @@ const MerchantSignup = () => {
                 />
               </div>
             ))}
-            <button type="submit" className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
-              إنشاء حساب كتاجر
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? "جاري الإنشاء..." : "إنشاء حساب كتاجر"}
             </button>
           </form>
           <p className="text-center text-sm text-muted-foreground">
             عندك حساب؟{" "}
-            <Link to="/dashboard" className="text-primary hover:underline">تسجيل الدخول</Link>
+            <Link to="/login" className="text-primary hover:underline">تسجيل الدخول</Link>
           </p>
           <p className="text-center text-sm text-muted-foreground">
             <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق بدلا من ذلك</Link>

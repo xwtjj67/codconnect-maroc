@@ -1,4 +1,4 @@
-import DashboardLayout from "@/components/layouts/DashboardLayout";
+import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { PlayCircle, BookOpen, FileDown } from "lucide-react";
 
 const trainingItems = [
@@ -22,9 +22,9 @@ const trainingItems = [
   },
 ];
 
-const Training = () => {
+const AffiliateTraining = () => {
   return (
-    <DashboardLayout>
+    <AffiliateLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">التدريب</h1>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -42,8 +42,8 @@ const Training = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </AffiliateLayout>
   );
 };
 
-export default Training;
+export default AffiliateTraining;
