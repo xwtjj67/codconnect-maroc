@@ -18,12 +18,12 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (requiredRole && user?.role !== requiredRole) {
-    const redirect = user?.role === "merchant" ? "/merchant/dashboard" : "/affiliate/dashboard";
+    const redirect = user?.role === "admin" ? "/admin/dashboard"
+      : user?.role === "merchant" ? "/merchant/dashboard"
+      : "/affiliate/dashboard";
     return <Navigate to={redirect} replace />;
   }
 

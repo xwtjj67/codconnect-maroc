@@ -1,19 +1,18 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Users, GraduationCap, LogOut, Menu, X, Wallet } from "lucide-react";
+import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Shield, LogOut, Menu, X, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import PlanBadge from "@/components/shared/PlanBadge";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
 const sidebarItems = [
-  { title: "لوحة التحكم", url: "/affiliate/dashboard", icon: LayoutDashboard },
-  { title: "المنتجات", url: "/affiliate/products", icon: Package },
-  { title: "الطلبات", url: "/affiliate/orders", icon: ShoppingCart },
-  { title: "الإحالات", url: "/affiliate/referrals", icon: Users },
-  { title: "التدريب", url: "/affiliate/training", icon: GraduationCap },
+  { title: "لوحة التحكم", url: "/admin/dashboard", icon: LayoutDashboard },
+  { title: "المستخدمين", url: "/admin/users", icon: Users },
+  { title: "المنتجات", url: "/admin/products", icon: Package },
+  { title: "الطلبات", url: "/admin/orders", icon: ShoppingCart },
+  { title: "التحليلات", url: "/admin/analytics", icon: BarChart3 },
 ];
 
-const AffiliateLayout = ({ children }: { children: ReactNode }) => {
+const AdminLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,16 +27,12 @@ const AffiliateLayout = ({ children }: { children: ReactNode }) => {
         <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={codconnectLogo} alt="CodConnect" className="h-8 w-auto" />
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/20 text-primary border border-primary/30">مسوق</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-destructive/20 text-destructive border border-destructive/30 flex items-center gap-1">
+              <Shield className="h-3 w-3" /> أدمن
+            </span>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground"><X className="h-5 w-5" /></button>
         </div>
-
-        {user?.plan && (
-          <div className="px-4 py-3 border-b border-sidebar-border">
-            <PlanBadge plan={user.plan} />
-          </div>
-        )}
 
         <nav className="flex-1 p-3 space-y-1">
           {sidebarItems.map((item) => {
@@ -69,9 +64,9 @@ const AffiliateLayout = ({ children }: { children: ReactNode }) => {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-border/50 bg-background/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-foreground"><Menu className="h-5 w-5" /></button>
-          <span className="text-sm text-muted-foreground">مرحبا، {user?.name || "مسوق"}</span>
-          <div className="h-8 w-8 rounded-full gradient-teal flex items-center justify-center text-primary-foreground text-xs font-bold">
-            {user?.name?.charAt(0) || "A"}
+          <span className="text-sm text-muted-foreground">لوحة الإدارة</span>
+          <div className="h-8 w-8 rounded-full bg-destructive/20 flex items-center justify-center text-destructive text-xs font-bold">
+            <Shield className="h-4 w-4" />
           </div>
         </header>
         <main className="flex-1 p-4 lg:p-6 overflow-auto">{children}</main>
@@ -80,4 +75,4 @@ const AffiliateLayout = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export default AffiliateLayout;
+export default AdminLayout;

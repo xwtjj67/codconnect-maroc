@@ -1,10 +1,9 @@
 import { apiClient } from "./api";
-import type { AuthResponse, LoginCredentials, AffiliateSignupData, MerchantSignupData, User } from "@/types/auth";
+import type { AuthResponse, LoginCredentials, AffiliateSignupData, MerchantSignupData, User, PlanType } from "@/types/auth";
 
-// Mock mode — set to false when your backend is live
 const MOCK_MODE = true;
 
-const mockUser = (role: "merchant" | "affiliate", overrides?: Partial<User>): User => ({
+const mockUser = (role: "merchant" | "affiliate" | "admin", overrides?: Partial<User>): User => ({
   id: crypto.randomUUID(),
   name: overrides?.name || "مستخدم تجريبي",
   email: "test@codconnect.ma",
@@ -12,16 +11,22 @@ const mockUser = (role: "merchant" | "affiliate", overrides?: Partial<User>): Us
   city: overrides?.city || "الدار البيضاء",
   whatsapp: overrides?.whatsapp || "0600000000",
   role,
+  plan: (overrides?.plan || "standard") as PlanType,
   storeName: role === "merchant" ? (overrides?.storeName || "متجر تجريبي") : undefined,
   token: "mock_jwt_" + Date.now(),
+  createdAt: new Date().toISOString(),
+  isActive: true,
 });
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     if (MOCK_MODE) {
-      // Simulate: phone starting with 06 = affiliate, 07 = merchant
-      const role = credentials.phone.startsWith("07") ? "merchant" : "affiliate";
-      const user = mockUser(role, { phone: credentials.phone });
+      const role = credentials.phone === "0500000000" ? "admin" as const
+        : credentials.phone.startsWith("07") ? "merchant" as const
+        : "affiliate" as const;
+      const plan: PlanType = credentials.phone.endsWith("1") ? "premium"
+        : credentials.phone.endsWith("2") ? "vip" : "standard";
+      const user = mockUser(role, { phone: credentials.phone, plan });
       return { user, token: user.token };
     }
     return apiClient.post<AuthResponse>("/auth/login", credentials);
@@ -29,7 +34,7 @@ export const authService = {
 
   async signupAffiliate(data: AffiliateSignupData): Promise<AuthResponse> {
     if (MOCK_MODE) {
-      const user = mockUser("affiliate", data);
+      const user = mockUser("affiliate", { ...data, plan: "standard" });
       return { user, token: user.token };
     }
     return apiClient.post<AuthResponse>("/auth/signup/affiliate", data);
@@ -37,7 +42,7 @@ export const authService = {
 
   async signupMerchant(data: MerchantSignupData): Promise<AuthResponse> {
     if (MOCK_MODE) {
-      const user = mockUser("merchant", { ...data, storeName: data.storeName });
+      const user = mockUser("merchant", { ...data, storeName: data.storeName, plan: "standard" });
       return { user, token: user.token };
     }
     return apiClient.post<AuthResponse>("/auth/signup/merchant", data);

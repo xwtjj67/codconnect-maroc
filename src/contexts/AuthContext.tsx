@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { User, UserRole } from "@/types/auth";
+import type { User, UserRole, PlanType, PLANS } from "@/types/auth";
 import { authService } from "@/services/authService";
 
 interface AuthContextType {
@@ -11,6 +11,8 @@ interface AuthContextType {
   signupMerchant: (data: { name: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
+  hasPlan: (plan: PlanType) => boolean;
+  canAddProduct: (currentCount: number) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -21,6 +23,8 @@ export const useAuth = () => {
   return ctx;
 };
 
+const planLimits: Record<PlanType, number> = { standard: 3, premium: 5, vip: -1 };
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,11 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("auth_token");
     const storedUser = localStorage.getItem("auth_user");
     if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        authService.logout();
-      }
+      try { setUser(JSON.parse(storedUser)); } catch { authService.logout(); }
     }
     setIsLoading(false);
   }, []);
@@ -59,15 +59,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     persistAuth(res.user, res.token);
   };
 
-  const logout = () => {
-    authService.logout();
-    setUser(null);
+  const logout = () => { authService.logout(); setUser(null); };
+  const hasRole = (role: UserRole) => user?.role === role;
+  const hasPlan = (plan: PlanType) => user?.plan === plan;
+  const canAddProduct = (currentCount: number) => {
+    if (!user) return false;
+    const limit = planLimits[user.plan];
+    return limit === -1 || currentCount < limit;
   };
 
-  const hasRole = (role: UserRole) => user?.role === role;
-
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, signupAffiliate, signupMerchant, logout, hasRole }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, signupAffiliate, signupMerchant, logout, hasRole, hasPlan, canAddProduct }}>
       {children}
     </AuthContext.Provider>
   );
