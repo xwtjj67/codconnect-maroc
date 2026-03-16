@@ -201,6 +201,7 @@ const PricingSection = () => {
   );
 };
 
+const Index = () => {
   return (
     <PublicLayout>
       {/* Hero */}
