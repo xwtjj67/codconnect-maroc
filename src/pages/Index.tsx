@@ -1,11 +1,35 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
   TrendingUp, Users, ShoppingCart, Store, Check, Star, Zap, BookOpen,
   Video, Clock, LayoutGrid, MessageCircle, Crown, Layers, BarChart3,
-  GraduationCap, Shield, Infinity, Rocket
+  GraduationCap, Shield, Infinity, Rocket, Flame, Timer
 } from "lucide-react";
+
+const useCountdown = (hours: number) => {
+  const [end] = useState(() => {
+    const stored = localStorage.getItem("codconnect_promo_end");
+    if (stored) return parseInt(stored);
+    const e = Date.now() + hours * 60 * 60 * 1000;
+    localStorage.setItem("codconnect_promo_end", String(e));
+    return e;
+  });
+  const [timeLeft, setTimeLeft] = useState(() => Math.max(0, end - Date.now()));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(Math.max(0, end - Date.now()));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [end]);
+
+  const h = Math.floor(timeLeft / 3600000);
+  const m = Math.floor((timeLeft % 3600000) / 60000);
+  const s = Math.floor((timeLeft % 60000) / 1000);
+  return { h, m, s, expired: timeLeft <= 0 };
+};
 
 const plans = [
   {
