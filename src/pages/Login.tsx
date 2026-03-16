@@ -23,11 +23,13 @@ const Login = () => {
     setLoading(true);
     try {
       await login(phone, password);
-      // AuthContext sets user, we check role to redirect
       const stored = localStorage.getItem("auth_user");
       if (stored) {
         const user = JSON.parse(stored);
-        navigate(user.role === "merchant" ? "/merchant/dashboard" : "/affiliate/dashboard", { replace: true });
+        const path = user.role === "admin" ? "/admin/dashboard"
+          : user.role === "merchant" ? "/merchant/dashboard"
+          : "/affiliate/dashboard";
+        navigate(path, { replace: true });
       }
     } catch (err: any) {
       setError(err.message || "فشل تسجيل الدخول");
@@ -91,10 +93,9 @@ const Login = () => {
             </p>
           </div>
 
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground/60">
-              تجربة: هاتف يبدأ بـ 06 = مسوق، يبدأ بـ 07 = تاجر
-            </p>
+          <div className="text-center space-y-1">
+            <p className="text-xs text-muted-foreground/60">تجربة: 06X = مسوق، 07X = تاجر، 0500000000 = أدمن</p>
+            <p className="text-xs text-muted-foreground/60">الرقم ينتهي بـ 1 = Premium، بـ 2 = VIP</p>
           </div>
         </div>
       </div>
