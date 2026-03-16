@@ -1,15 +1,65 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import ProductCard from "@/components/shared/ProductCard";
 import { Link } from "react-router-dom";
-import { UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones, TrendingUp, Users, ShoppingCart, Store } from "lucide-react";
+import {
+  UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
+  TrendingUp, Users, ShoppingCart, Store, Check, Star, Zap, BookOpen,
+  Video, Clock, LayoutGrid, MessageCircle, Crown, Layers, BarChart3,
+  GraduationCap, Shield, Infinity, Rocket
+} from "lucide-react";
+
+const plans = [
+  {
+    name: "Standard",
+    price: "30",
+    badge: null,
+    highlighted: false,
+    features: [
+      { icon: BadgeDollarSign, text: "عمولة: 10%" },
+      { icon: Package, text: "عدد المنتجات: 3" },
+      { icon: Clock, text: "مدة المنتج: 30 يوم" },
+      { icon: LayoutGrid, text: "عرض منتج أساسي" },
+      { icon: Zap, text: "وصول مجاني للمنصة" },
+      { icon: Video, text: "فيديو تدريبي تمهيدي" },
+      { icon: Headphones, text: "دعم عادي" },
+    ],
+    cta: "ابدأ الآن",
+  },
+  {
+    name: "Premium",
+    price: "200",
+    badge: "الأكثر توازناً",
+    highlighted: false,
+    features: [
+      { icon: BadgeDollarSign, text: "عمولة: 20%" },
+      { icon: Package, text: "عدد المنتجات: 5" },
+      { icon: Clock, text: "مدة المنتج: 20 يوم" },
+      { icon: Layers, text: "صفحة منتج مفصلة" },
+      { icon: Users, text: "وصول للمجموعة الخاصة" },
+      { icon: Star, text: "أولوية في عرض المنتجات" },
+      { icon: GraduationCap, text: "دورة فيديو مدمجة" },
+    ],
+    cta: "اشترك الآن",
+  },
+  {
+    name: "VIP",
+    price: "350",
+    badge: "أفضل خيار",
+    highlighted: true,
+    features: [
+      { icon: BadgeDollarSign, text: "عمولة: 30%" },
+      { icon: Infinity, text: "منتجات غير محدودة" },
+      { icon: Clock, text: "مدة المنتج: 15 يوم" },
+      { icon: BarChart3, text: "نظام معلومات متقدم للمنتجات" },
+      { icon: Rocket, text: "أدوات تسويق متقدمة" },
+      { icon: Shield, text: "دعم بريميوم 24/7" },
+      { icon: TrendingUp, text: "تأكيد + استراتيجية نمو" },
+      { icon: BookOpen, text: "فيديوهات تدريبية متقدمة" },
+    ],
+    cta: "ابدأ VIP",
+  },
+];
 
 const Index = () => {
-  const products = [
-    { image: "/placeholder.svg", name: "سماعات بلوتوث لاسلكية", commission: "40 DH", price: "199 DH" },
-    { image: "/placeholder.svg", name: "كريم العناية بالبشرة", commission: "35 DH", price: "149 DH" },
-    { image: "/placeholder.svg", name: "حزام رياضي ذكي", commission: "50 DH", price: "249 DH" },
-  ];
-
   return (
     <PublicLayout>
       {/* Hero */}
@@ -99,13 +149,74 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trending Products */}
-      <section className="py-16 lg:py-24">
-        <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">منتجات ترند حاليا</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {products.map((p, i) => (
-              <ProductCard key={i} {...p} />
+      {/* Pricing Plans */}
+      <section className="py-16 lg:py-24 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+        <div className="container relative">
+          <div className="text-center space-y-4 mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold">اختر الخطة المناسبة لك</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              ابدأ تجارتك عبر نظام COD بسهولة وبدون رأس مال
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+            {plans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative flex flex-col rounded-2xl p-[1px] transition-transform duration-300 hover:scale-[1.03] ${
+                  plan.highlighted
+                    ? "bg-gradient-to-b from-primary via-teal-glow to-primary shadow-[0_0_50px_rgba(20,184,166,0.3)]"
+                    : "bg-border/50"
+                }`}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className={`inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-bold ${
+                      plan.highlighted
+                        ? "gradient-teal text-primary-foreground"
+                        : "bg-accent/20 text-accent border border-accent/30"
+                    }`}>
+                      {plan.highlighted && <Crown className="h-3 w-3" />}
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div className={`flex flex-col flex-1 rounded-2xl p-8 space-y-6 ${
+                  plan.highlighted ? "bg-card" : "bg-card/80"
+                }`}>
+                  <div className="text-center space-y-3">
+                    <h3 className={`text-2xl font-bold ${plan.highlighted ? "text-primary" : "text-foreground"}`}>
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-4xl font-extrabold text-foreground">{plan.price}</span>
+                      <span className="text-muted-foreground text-sm">DH</span>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 flex-1">
+                    {plan.features.map((f, i) => (
+                      <li key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                        <f.icon className={`h-4 w-4 shrink-0 ${plan.highlighted ? "text-primary" : "text-primary/70"}`} />
+                        {f.text}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    to="/affiliate-signup"
+                    className={`block text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
+                      plan.highlighted
+                        ? "gradient-teal text-primary-foreground teal-glow hover:opacity-90"
+                        : "border-2 border-primary/30 text-primary hover:bg-primary/10"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </div>
