@@ -1,28 +1,17 @@
 import { apiClient } from "./api";
-
-export type OrderStatus = "pending" | "confirmed" | "delivered" | "cancelled";
-
-export interface Order {
-  id: string;
-  productName: string;
-  clientName: string;
-  city: string;
-  status: OrderStatus;
-  commission: string;
-  price: string;
-  createdAt: string;
-  affiliateId?: string;
-  merchantId?: string;
-}
+import type { Order } from "@/types/models";
+import type { OrderStatus } from "@/types/auth";
 
 const MOCK_MODE = true;
 
 const mockOrders: Order[] = [
-  { id: "1", productName: "سماعات بلوتوث", clientName: "أحمد", city: "الدار البيضاء", status: "confirmed", commission: "40 DH", price: "199 DH", createdAt: "2026-03-10" },
-  { id: "2", productName: "كريم العناية", clientName: "فاطمة", city: "مراكش", status: "pending", commission: "35 DH", price: "149 DH", createdAt: "2026-03-11" },
-  { id: "3", productName: "حزام رياضي", clientName: "يوسف", city: "الرباط", status: "delivered", commission: "50 DH", price: "249 DH", createdAt: "2026-03-12" },
-  { id: "4", productName: "ساعة رقمية", clientName: "سارة", city: "طنجة", status: "confirmed", commission: "45 DH", price: "179 DH", createdAt: "2026-03-12" },
-  { id: "5", productName: "عطر فاخر", clientName: "كريم", city: "فاس", status: "cancelled", commission: "0 DH", price: "320 DH", createdAt: "2026-03-09" },
+  { id: "1", productId: "1", productName: "سماعات بلوتوث", clientName: "أحمد", clientPhone: "0611111111", city: "الدار البيضاء", status: "confirmed", commission: 40, price: 199, affiliateId: "a1", affiliateName: "محمد ب.", merchantId: "m1", createdAt: "2026-03-10", updatedAt: "2026-03-10" },
+  { id: "2", productId: "2", productName: "كريم العناية", clientName: "فاطمة", clientPhone: "0622222222", city: "مراكش", status: "pending", commission: 35, price: 149, affiliateId: "a2", affiliateName: "سارة ل.", merchantId: "m2", createdAt: "2026-03-11", updatedAt: "2026-03-11" },
+  { id: "3", productId: "3", productName: "حزام رياضي", clientName: "يوسف", clientPhone: "0633333333", city: "الرباط", status: "delivered", commission: 50, price: 249, affiliateId: "a1", affiliateName: "محمد ب.", merchantId: "m1", createdAt: "2026-03-12", updatedAt: "2026-03-13" },
+  { id: "4", productId: "6", productName: "ساعة رقمية", clientName: "سارة", clientPhone: "0644444444", city: "طنجة", status: "shipped", commission: 45, price: 179, affiliateId: "a3", affiliateName: "يوسف ع.", merchantId: "m1", createdAt: "2026-03-12", updatedAt: "2026-03-14" },
+  { id: "5", productId: "4", productName: "عطر فاخر", clientName: "كريم", clientPhone: "0655555555", city: "فاس", status: "cancelled", commission: 0, price: 320, affiliateId: "a2", affiliateName: "سارة ل.", merchantId: "m3", createdAt: "2026-03-09", updatedAt: "2026-03-10" },
+  { id: "6", productId: "1", productName: "سماعات بلوتوث", clientName: "نور", clientPhone: "0666666666", city: "أكادير", status: "confirmed", commission: 40, price: 199, affiliateId: "a1", affiliateName: "محمد ب.", merchantId: "m1", createdAt: "2026-03-14", updatedAt: "2026-03-14" },
+  { id: "7", productId: "2", productName: "كريم العناية", clientName: "هدى", clientPhone: "0677777777", city: "وجدة", status: "delivered", commission: 35, price: 149, affiliateId: "a3", affiliateName: "يوسف ع.", merchantId: "m2", createdAt: "2026-03-08", updatedAt: "2026-03-11" },
 ];
 
 export const orderService = {
@@ -45,20 +34,25 @@ export const orderService = {
     if (MOCK_MODE) {
       const order = mockOrders.find(o => o.id === id);
       if (!order) throw new Error("Order not found");
-      return { ...order, status };
+      return { ...order, status, updatedAt: new Date().toISOString() };
     }
     return apiClient.put<Order>(`/orders/${id}/status`, { status });
   },
 
-  async getStats(): Promise<{ totalOrders: number; confirmed: number; delivered: number; pending: number; totalCommission: string; totalRevenue: string }> {
+  async getStats() {
     if (MOCK_MODE) {
+      const confirmed = mockOrders.filter(o => o.status === "confirmed").length;
+      const delivered = mockOrders.filter(o => o.status === "delivered").length;
+      const totalRevenue = mockOrders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.price, 0);
+      const totalCommission = mockOrders.filter(o => o.status === "confirmed" || o.status === "delivered").reduce((s, o) => s + o.commission, 0);
       return {
         totalOrders: mockOrders.length,
-        confirmed: mockOrders.filter(o => o.status === "confirmed").length,
-        delivered: mockOrders.filter(o => o.status === "delivered").length,
+        confirmed,
+        delivered,
+        shipped: mockOrders.filter(o => o.status === "shipped").length,
         pending: mockOrders.filter(o => o.status === "pending").length,
-        totalCommission: "170 DH",
-        totalRevenue: "1,096 DH",
+        totalCommission,
+        totalRevenue,
       };
     }
     return apiClient.get("/orders/stats");
