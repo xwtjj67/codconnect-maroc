@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const MerchantSignup = () => {
-  const [form, setForm] = useState({ name: "", storeName: "", phone: "", city: "", whatsapp: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", storeName: "", phone: "", city: "", whatsapp: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { signupMerchant } = useAuth();
@@ -14,8 +14,12 @@ const MerchantSignup = () => {
     e.preventDefault();
     setError("");
 
-    if (!form.name.trim() || !form.storeName.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
+    if (!form.name.trim() || !form.email.trim() || !form.storeName.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
       setError("يرجى ملء جميع الحقول");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("كلمتا السر غير متطابقتين");
       return;
     }
     if (form.password.length < 6) {
@@ -25,8 +29,11 @@ const MerchantSignup = () => {
 
     setLoading(true);
     try {
-      await signupMerchant(form);
-      navigate("/merchant/dashboard", { replace: true });
+      await signupMerchant({
+        name: form.name, email: form.email, storeName: form.storeName,
+        phone: form.phone, city: form.city, whatsapp: form.whatsapp, password: form.password,
+      });
+      navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل إنشاء الحساب");
     } finally {
@@ -39,8 +46,8 @@ const MerchantSignup = () => {
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md glass-card p-8 space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">افتح حسابك كتاجر وأضف منتجاتك</h1>
-            <p className="text-sm text-muted-foreground">وسع مبيعاتك عبر شبكة مسوقين CodConnect</p>
+            <h1 className="text-2xl font-bold">سجل كصاحب منتجات</h1>
+            <p className="text-sm text-muted-foreground">وفر منتجاتك ودعنا نبيعها لك</p>
           </div>
 
           {error && (
@@ -52,11 +59,13 @@ const MerchantSignup = () => {
           <form className="space-y-4" onSubmit={handleSubmit}>
             {[
               { label: "الاسم الكامل", key: "name", type: "text", placeholder: "أدخل اسمك الكامل" },
-              { label: "اسم المتجر", key: "storeName", type: "text", placeholder: "اسم متجرك" },
-              { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX" },
+              { label: "البريد الإلكتروني", key: "email", type: "email", placeholder: "example@email.com", dir: "ltr" },
+              { label: "اسم المتجر / العلامة التجارية", key: "storeName", type: "text", placeholder: "اسم المتجر" },
+              { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX", dir: "ltr" },
               { label: "المدينة", key: "city", type: "text", placeholder: "مثال: الدار البيضاء" },
-              { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "رقم واتساب" },
+              { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "رقم واتساب", dir: "ltr" },
               { label: "كلمة السر", key: "password", type: "password", placeholder: "••••••••" },
+              { label: "تأكيد كلمة السر", key: "confirmPassword", type: "password", placeholder: "••••••••" },
             ].map((f) => (
               <div key={f.key} className="space-y-2">
                 <label className="text-sm font-medium text-foreground">{f.label}</label>
@@ -65,6 +74,7 @@ const MerchantSignup = () => {
                   placeholder={f.placeholder}
                   value={form[f.key as keyof typeof form]}
                   onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  dir={(f as any).dir}
                   className="w-full h-11 px-4 rounded-lg bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
               </div>
@@ -72,18 +82,20 @@ const MerchantSignup = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-accent text-accent-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {loading ? "جاري الإنشاء..." : "إنشاء حساب كتاجر"}
+              {loading ? "جاري الإنشاء..." : "إنشاء حساب"}
             </button>
           </form>
-          <p className="text-center text-sm text-muted-foreground">
-            عندك حساب؟{" "}
-            <Link to="/login" className="text-primary hover:underline">تسجيل الدخول</Link>
-          </p>
-          <p className="text-center text-sm text-muted-foreground">
-            <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق بدلا من ذلك</Link>
-          </p>
+          <div className="text-center space-y-2 text-sm text-muted-foreground">
+            <p>
+              عندك حساب؟{" "}
+              <Link to="/login" className="text-primary hover:underline">تسجيل الدخول</Link>
+            </p>
+            <p>
+              <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق بدلا من ذلك</Link>
+            </p>
+          </div>
         </div>
       </div>
     </PublicLayout>

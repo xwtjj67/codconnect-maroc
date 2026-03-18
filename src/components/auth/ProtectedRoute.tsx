@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import type { UserRole } from "@/types/auth";
+import type { UserRole } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   if (requiredRole && user?.role !== requiredRole) {
     const redirect = user?.role === "admin" ? "/admin/dashboard"
-      : user?.role === "merchant" ? "/merchant/dashboard"
+      : user?.role === "product_owner" ? "/merchant/dashboard"
       : "/affiliate/dashboard";
     return <Navigate to={redirect} replace />;
   }
