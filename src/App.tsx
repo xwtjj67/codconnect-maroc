@@ -35,15 +35,25 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 const queryClient = new QueryClient();
 
 const DashboardRedirect = () => {
-  const { user, isAuthenticated, isPending } = useAuth();
+  const { user, isAuthenticated, isPending, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (isPending) return <Navigate to="/pending-approval" replace />;
   if (user?.role === "admin") return <Navigate to="/admin/dashboard" replace />;
-  return <Navigate to={user?.role === "merchant" ? "/merchant/dashboard" : "/affiliate/dashboard"} replace />;
+  return <Navigate to={user?.role === "product_owner" ? "/merchant/dashboard" : "/affiliate/dashboard"} replace />;
 };
 
 const PendingRoute = () => {
-  const { isAuthenticated, isPending } = useAuth();
+  const { isAuthenticated, isPending, isLoading } = useAuth();
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isPending) return <Navigate to="/dashboard" replace />;
   return <PendingApproval />;
@@ -66,10 +76,10 @@ const App = () => (
             <Route path="/support" element={<Support />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
 
-            <Route path="/merchant/dashboard" element={<ProtectedRoute requiredRole="merchant"><MerchantDashboard /></ProtectedRoute>} />
-            <Route path="/merchant/products" element={<ProtectedRoute requiredRole="merchant"><MerchantProducts /></ProtectedRoute>} />
-            <Route path="/merchant/orders" element={<ProtectedRoute requiredRole="merchant"><MerchantOrders /></ProtectedRoute>} />
-            <Route path="/merchant/analytics" element={<ProtectedRoute requiredRole="merchant"><MerchantAnalytics /></ProtectedRoute>} />
+            <Route path="/merchant/dashboard" element={<ProtectedRoute requiredRole="product_owner"><MerchantDashboard /></ProtectedRoute>} />
+            <Route path="/merchant/products" element={<ProtectedRoute requiredRole="product_owner"><MerchantProducts /></ProtectedRoute>} />
+            <Route path="/merchant/orders" element={<ProtectedRoute requiredRole="product_owner"><MerchantOrders /></ProtectedRoute>} />
+            <Route path="/merchant/analytics" element={<ProtectedRoute requiredRole="product_owner"><MerchantAnalytics /></ProtectedRoute>} />
 
             <Route path="/affiliate/dashboard" element={<ProtectedRoute requiredRole="affiliate"><AffiliateDashboard /></ProtectedRoute>} />
             <Route path="/affiliate/products" element={<ProtectedRoute requiredRole="affiliate"><AffiliateProducts /></ProtectedRoute>} />

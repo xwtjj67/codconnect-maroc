@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,14 +15,14 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    if (!phone.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("يرجى ملء جميع الحقول");
       return;
     }
 
     setLoading(true);
     try {
-      await login(phone, password);
+      await login(email, password);
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل تسجيل الدخول");
@@ -48,12 +48,12 @@ const Login = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">رقم الهاتف</label>
+              <label className="text-sm font-medium text-foreground">البريد الإلكتروني</label>
               <input
-                type="tel"
-                placeholder="06XXXXXXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                type="email"
+                placeholder="example@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 dir="ltr"
               />
