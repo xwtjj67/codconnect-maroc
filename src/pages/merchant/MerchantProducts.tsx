@@ -6,6 +6,7 @@ import { SELLER_PLANS } from "@/types/auth";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ImageUpload from "@/components/shared/ImageUpload";
 
 const approvalLabels: Record<string, string> = { pending: "قيد الموافقة", approved: "مقبول", rejected: "مرفوض" };
 const approvalColors: Record<string, string> = {
@@ -21,6 +22,7 @@ interface ProductRow {
   sellingPrice: number | null;
   stock: number;
   approvalStatus: string;
+  image: string | null;
 }
 
 const MerchantProducts = () => {
@@ -32,27 +34,66 @@ const MerchantProducts = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: "", costPrice: "", stock: "", description: "", category: "" });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const canAdd = products.length < plan.maxProducts;
+
+  const mapProducts = (data: any[]) =>
+    data.map(p => ({
+      id: p.id, name: p.name, costPrice: Number(p.cost_price),
+      sellingPrice: p.selling_price ? Number(p.selling_price) : null,
+      stock: p.stock, approvalStatus: p.approval_status,
+      image: p.image,
+    }));
 
   useEffect(() => {
     if (!user) return;
     const fetch = async () => {
       const { data } = await supabase.from("products").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false });
-      setProducts((data || []).map(p => ({
-        id: p.id, name: p.name, costPrice: Number(p.cost_price),
-        sellingPrice: p.selling_price ? Number(p.selling_price) : null,
-        stock: p.stock, approvalStatus: p.approval_status,
-      })));
+      setProducts(mapProducts(data || []));
       setLoading(false);
     };
     fetch();
   }, [user]);
 
+  const handleFileSelect = (file: File) => {
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file);
+    if (error) return null;
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !form.name.trim() || !form.costPrice) return;
+    if (!user || !form.name.trim() || !form.costPrice || !imageFile) {
+      if (!imageFile) toast({ title: "خطأ", description: "يرجى إضافة صورة المنتج", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
+
+    const imageUrl = await uploadImage(imageFile);
+    if (!imageUrl) {
+      toast({ title: "خطأ", description: "فشل رفع الصورة", variant: "destructive" });
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = await supabase.from("products").insert({
       merchant_id: user.id,
       name: form.name.trim(),
@@ -60,20 +101,17 @@ const MerchantProducts = () => {
       stock: Number(form.stock) || 0,
       description: form.description.trim() || null,
       category: form.category.trim() || null,
+      image: imageUrl,
     });
     if (error) {
       toast({ title: "خطأ", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "تم بنجاح", description: "تم إضافة المنتج وهو قيد الموافقة" });
       setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
+      clearImage();
       setShowForm(false);
-      // Refresh
       const { data } = await supabase.from("products").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false });
-      setProducts((data || []).map(p => ({
-        id: p.id, name: p.name, costPrice: Number(p.cost_price),
-        sellingPrice: p.selling_price ? Number(p.selling_price) : null,
-        stock: p.stock, approvalStatus: p.approval_status,
-      })));
+      setProducts(mapProducts(data || []));
     }
     setSubmitting(false);
   };
@@ -110,6 +148,12 @@ const MerchantProducts = () => {
         {showForm && (
           <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
             <h2 className="font-semibold">إضافة منتج جديد</h2>
+            <ImageUpload
+              onFileSelect={handleFileSelect}
+              preview={imagePreview}
+              onClear={clearImage}
+              disabled={submitting}
+            />
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">اسم المنتج *</label>
@@ -144,7 +188,7 @@ const MerchantProducts = () => {
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 إضافة المنتج
               </button>
-              <button type="button" onClick={() => setShowForm(false)}
+              <button type="button" onClick={() => { setShowForm(false); clearImage(); }}
                 className="px-6 py-2.5 rounded-lg bg-secondary/50 text-muted-foreground text-sm hover:bg-secondary transition-colors">
                 إلغاء
               </button>
@@ -170,6 +214,7 @@ const MerchantProducts = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/50">
+                    <th className="text-right p-4 font-medium text-muted-foreground">الصورة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
@@ -180,6 +225,15 @@ const MerchantProducts = () => {
                 <tbody>
                   {products.map(p => (
                     <tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors">
+                      <td className="p-4">
+                        {p.image ? (
+                          <img src={p.image} alt={p.name} loading="lazy" className="h-10 w-10 rounded-lg object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-secondary/50 flex items-center justify-center">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </td>
                       <td className="p-4 font-medium">{p.name}</td>
                       <td className="p-4 text-muted-foreground">{p.costPrice} DH</td>
                       <td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "يحدد لاحقاً"}</td>
