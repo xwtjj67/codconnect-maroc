@@ -67,14 +67,12 @@ const MerchantDashboard = () => {
               <p className="text-sm text-muted-foreground">المنتجات: {stats.products} / {plan.maxProducts}</p>
             </div>
             {user?.sellerPlan !== "pro" && (
-              <a
-                href={`https://api.whatsapp.com/send?phone=212778133038&text=${encodeURIComponent(`أريد ترقية باقتي كصاحب منتجات`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => window.open(`https://wa.me/212778133038?text=${encodeURIComponent("أريد ترقية باقتي كصاحب منتجات")}`, "_blank")}
                 className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
               >
                 <TrendingUp className="h-4 w-4" /> ترقية الباقة
-              </a>
+              </button>
             )}
           </div>
         </div>
