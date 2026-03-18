@@ -1,6 +1,6 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { useState, useEffect } from "react";
-import { Search, Package, Eye } from "lucide-react";
+import { Search, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import LockedFeature from "@/components/shared/LockedFeature";
@@ -97,8 +97,17 @@ const AffiliateProducts = () => {
         </div>
 
         {loading ? (
-          <div className="glass-card p-12 text-center">
-            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card overflow-hidden animate-pulse">
+                <div className="aspect-square bg-secondary/50" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 w-3/4 bg-secondary/50 rounded" />
+                  <div className="h-4 w-1/2 bg-secondary/50 rounded" />
+                  <div className="h-4 w-1/3 bg-secondary/50 rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="glass-card p-12 text-center space-y-3">
@@ -114,27 +123,40 @@ const AffiliateProducts = () => {
               const isLocked = !allowedVisibility.includes(product.visibility);
               return (
                 <LockedFeature key={product.id} isLocked={isLocked} message="قم بالترقية للوصول لهذا المنتج">
-                  <div className="glass-card-hover p-5 space-y-3">
-                    {product.image && (
-                      <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded-lg" />
-                    )}
-                    <h3 className="font-bold">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-                    )}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-foreground font-semibold">
-                        {product.sellingPrice ? `${product.sellingPrice} DH` : "—"}
-                      </span>
-                      {product.commission && (
-                        <span className="gold-badge">عمولة: {product.commission} DH</span>
+                  <div className="glass-card-hover overflow-hidden">
+                    <div className="aspect-square bg-secondary/50 overflow-hidden">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
                       )}
                     </div>
-                    {product.category && (
-                      <span className="inline-block px-2 py-0.5 rounded text-xs bg-secondary/50 text-muted-foreground">
-                        {product.category}
-                      </span>
-                    )}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold truncate">{product.name}</h3>
+                      {product.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                      )}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-foreground font-semibold">
+                          {product.sellingPrice ? `${product.sellingPrice} DH` : "—"}
+                        </span>
+                        {product.commission && (
+                          <span className="gold-badge">عمولة: {product.commission} DH</span>
+                        )}
+                      </div>
+                      {product.category && (
+                        <span className="inline-block px-2 py-0.5 rounded text-xs bg-secondary/50 text-muted-foreground">
+                          {product.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </LockedFeature>
               );
