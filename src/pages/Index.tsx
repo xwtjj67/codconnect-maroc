@@ -4,7 +4,7 @@ import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
-  Users, ShoppingCart
+  Users, ShoppingCart, ClipboardCheck, Search, Wallet
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
@@ -279,9 +279,9 @@ const Index = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">كيفاش تبدأ؟</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: "الخطوة الأولى", title: "سجل حسابك", desc: "أنشئ حسابك كمسوق واختر الباقة المناسبة", icon: UserPlus },
-              { step: "الخطوة الثانية", title: "اختر المنتجات", desc: "تصفح المنتجات الجاهزة وابدأ الترويج لها", icon: Package },
-              { step: "الخطوة الثالثة", title: "اربح العمولة", desc: "عند تأكيد الطلب، تربح عمولتك مباشرة", icon: BadgeDollarSign },
+              { step: "الخطوة الأولى", title: "سجل حسابك", desc: "أنشئ حسابك كمسوق واختر الباقة المناسبة", icon: ClipboardCheck },
+              { step: "الخطوة الثانية", title: "اختر المنتجات", desc: "تصفح المنتجات الجاهزة وابدأ الترويج لها", icon: Search },
+              { step: "الخطوة الثالثة", title: "اربح العمولة", desc: "عند تأكيد الطلب، تربح عمولتك مباشرة", icon: Wallet },
             ].map((item, i) => (
               <div key={i} className="text-center space-y-4">
                 <div className="h-14 w-14 rounded-2xl gradient-teal flex items-center justify-center mx-auto">
