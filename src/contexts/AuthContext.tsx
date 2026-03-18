@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => { authService.logout(); setUser(null); };
   const hasRole = (role: UserRole) => user?.role === role;
   const hasPlan = (plan: PlanType) => user?.plan === plan;
-  const isPending = !!user && (user.status === "pending" || user.status === "approved") && user.status !== "active";
+  const isPending = !!user && user.status !== "active" && user.status !== "suspended";
   const canAddProduct = (currentCount: number) => {
     if (!user) return false;
     const limit = planLimits[user.plan];
