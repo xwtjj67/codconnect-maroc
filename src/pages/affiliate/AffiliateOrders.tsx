@@ -1,8 +1,9 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { ShoppingCart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import CreateOrderDialog from "@/components/affiliate/CreateOrderDialog";
 
 const statusLabels: Record<string, string> = {
   pending: "قيد الانتظار", confirmed: "مؤكد", shipped: "تم الشحن", delivered: "تم التوصيل", cancelled: "ملغي",
