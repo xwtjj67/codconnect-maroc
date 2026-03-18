@@ -32,10 +32,8 @@ const useCountdown = (hours: number) => {
   return { h, m, s, expired: timeLeft <= 0 };
 };
 
-const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
-const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(`أريد الاشتراك في خطة ${planName}`);
-  return `${WHATSAPP_BASE}${msg}`;
+const openWhatsApp = (text: string) => {
+  window.open(`https://wa.me/212778133038?text=${encodeURIComponent(text)}`, "_blank");
 };
 
 const plans = [
