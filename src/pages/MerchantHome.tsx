@@ -1,51 +1,51 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
+import { Link } from "react-router-dom";
 import {
   Package, BarChart3, Users, ShieldCheck, Zap, Clock, Headphones,
-  TrendingUp, MessageCircle, Crown, Rocket, Eye, Star, Layers
+  TrendingUp, MessageCircle, Crown, Rocket, Eye, Star, Layers,
+  HandCoins, Truck, CheckCircle, ArrowLeft, LogIn,
 } from "lucide-react";
 
 const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
 const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(
-    `أنا مهتم بالاشتراك كصاحب منتجات في منصتكم. أريد البدء بخطة ${planName}.`
-  );
+  const msg = encodeURIComponent(`أنا مهتم بالاشتراك كصاحب منتجات. أريد البدء بخطة ${planName}.`);
   return `${WHATSAPP_BASE}${msg}`;
 };
 
 const sellerPlans = [
   {
     name: "Basic",
-    price: "300",
     badge: null,
     highlighted: false,
     features: [
-      { icon: Package, text: "حتى 3 منتجات" },
+      { icon: Package, text: "رفع حتى 3 منتجات" },
+      { icon: HandCoins, text: "إدخال تكلفة المنتج" },
+      { icon: ShoppingCart, text: "متابعة الطلبات" },
       { icon: BarChart3, text: "إحصائيات أساسية" },
-      { icon: Eye, text: "ظهور عادي في المنصة" },
-      { icon: Clock, text: "سحب الأرباح: 30 يوم" },
-      { icon: Zap, text: "عمولة قابلة للتعديل" },
+      { icon: TrendingUp, text: "أرباح حسب الكمية" },
       { icon: Headphones, text: "دعم محدود" },
     ],
-    cta: "ابدأ الآن",
+    cta: "تواصل معنا",
   },
   {
     name: "Pro",
-    price: "500",
     badge: "أفضل خيار",
     highlighted: true,
     features: [
-      { icon: Package, text: "حتى 10 منتجات" },
-      { icon: BarChart3, text: "إحصائيات متقدمة" },
-      { icon: Star, text: "أولوية في العرض" },
-      { icon: Clock, text: "سحب الأرباح: 20 يوم" },
-      { icon: TrendingUp, text: "تحليلات تسويقية" },
-      { icon: Rocket, text: "ظهور مميز ومعزز" },
-      { icon: Layers, text: "أدوات إدارة متقدمة" },
+      { icon: Package, text: "منتجات أكثر" },
+      { icon: Star, text: "أولوية في عرض المنتجات" },
+      { icon: BarChart3, text: "تحليلات متقدمة" },
+      { icon: Rocket, text: "تسريع المعالجة" },
+      { icon: Layers, text: "إمكانية التفاوض على الشروط" },
+      { icon: Eye, text: "ظهور مميز ومعزز" },
       { icon: ShieldCheck, text: "دعم بريميوم" },
     ],
-    cta: "اشترك Pro",
+    cta: "تواصل معنا",
   },
 ];
+
+// Need ShoppingCart import
+import { ShoppingCart } from "lucide-react";
 
 const MerchantHome = () => {
   return (
@@ -57,23 +57,49 @@ const MerchantHome = () => {
         <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-glow-pulse" />
         <div className="container relative text-center space-y-8">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-            أنشئ منتجاتك ودع
+            وفر منتجاتك لنا ونحن نتكفل
             <br />
-            <span className="text-accent">شبكة المسوقين تبيعها لك</span>
+            <span className="text-accent">بالتسويق والبيع عبر شبكة المسوقين</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            أضف منتجاتك على المنصة، حدد العمولة، ودع مئات المسوقين يروجون لها.
+            أنت توفر المنتج فقط، ونحن نتحكم في السعر والتسويق والبيع.
             <br />
-            CodConnect تتكفل بالربط بين المسوقين ومنتجاتك.
+            نشتري منك بسعر الجملة ونبيع عبر شبكة مسوقين نشطين.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="#seller-plans" className="px-8 py-3 rounded-xl bg-accent text-accent-foreground font-semibold text-lg hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(202,158,60,0.3)]">
               شوف الباقات
             </a>
-            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-xl border-2 border-accent/40 text-accent font-semibold text-lg hover:bg-accent/10 transition-colors flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              تواصل معنا
-            </a>
+            <Link to="/merchant-signup" className="px-8 py-3 rounded-xl border-2 border-accent/40 text-accent font-semibold text-lg hover:bg-accent/10 transition-colors flex items-center gap-2">
+              <LogIn className="h-5 w-5" />
+              سجل كصاحب منتجات
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-16 lg:py-24 bg-secondary/30">
+        <div className="container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">كيف يعمل النظام؟</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
+            نظام بسيط: أنت توفر المنتج، ونحن نتكفل بالباقي
+          </p>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { step: "1", title: "وفر المنتج", desc: "أضف منتجاتك وحدد سعر التكلفة (الجملة)", icon: Package },
+              { step: "2", title: "نحن نتحكم", desc: "CodConnect تحدد سعر البيع، العمولة، والتسويق", icon: ShieldCheck },
+              { step: "3", title: "اربح من المبيعات", desc: "تربح حسب الكمية المباعة بدون أي جهد تسويقي", icon: HandCoins },
+            ].map((item, i) => (
+              <div key={i} className="text-center space-y-4">
+                <div className="h-14 w-14 rounded-2xl bg-accent flex items-center justify-center mx-auto">
+                  <item.icon className="h-7 w-7 text-accent-foreground" />
+                </div>
+                <p className="text-xs font-semibold text-accent">الخطوة {item.step}</p>
+                <h3 className="text-xl font-bold">{item.title}</h3>
+                <p className="text-muted-foreground text-sm">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -84,9 +110,9 @@ const MerchantHome = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">علاش تختار CodConnect؟</h2>
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
-              { icon: Users, title: "شبكة مسوقين جاهزة", desc: "مسوقون نشطون جاهزون للترويج لمنتجاتك فورًا" },
-              { icon: BarChart3, title: "تتبع مبيعاتك", desc: "إحصائيات مفصلة عن الطلبات والعمولات والأرباح" },
-              { icon: ShieldCheck, title: "تحكم كامل", desc: "حدد العمولة، تابع المخزون، وأدر كل شيء من لوحة تحكمك" },
+              { icon: Users, title: "شبكة مسوقين جاهزة", desc: "مسوقون نشطون يروجون لمنتجاتك فورًا بدون أي جهد منك" },
+              { icon: Truck, title: "لا تسويق ولا شحن", desc: "نحن نتكفل بكل شيء: التسويق، التأكيد، والشحن" },
+              { icon: BarChart3, title: "تتبع المبيعات", desc: "تابع الطلبات والأرباح من لوحة التحكم الخاصة بك" },
             ].map((item, i) => (
               <div key={i} className="glass-card-hover p-8 space-y-4 text-center">
                 <div className="h-14 w-14 rounded-2xl bg-accent flex items-center justify-center mx-auto">
@@ -107,7 +133,7 @@ const MerchantHome = () => {
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">اختر باقة صاحب المنتجات</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              ابدأ ببيع منتجاتك عبر شبكة المسوقين
+              ابدأ بتوفير منتجاتك ودعنا نبيعها لك
             </p>
           </div>
 
@@ -137,11 +163,10 @@ const MerchantHome = () => {
                     <h3 className={`text-2xl font-bold ${plan.highlighted ? "text-accent" : "text-foreground"}`}>
                       {plan.name}
                     </h3>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-extrabold text-foreground">{plan.price}</span>
-                      <span className="text-muted-foreground text-sm">DH</span>
+                    <div className="space-y-1">
+                      <p className="text-lg font-semibold text-accent">حسب الاتفاق</p>
+                      <p className="text-xs text-muted-foreground">يتطلب موافقة</p>
                     </div>
-                    <p className="text-xs text-muted-foreground">اشتراك شهري</p>
                   </div>
 
                   <ul className="space-y-3 flex-1">
@@ -177,7 +202,7 @@ const MerchantHome = () => {
       <section className="py-20 lg:py-28">
         <div className="container text-center space-y-8">
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 border-accent/30 shadow-[0_0_40px_rgba(202,158,60,0.15)]">
-            <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ تبيع منتجاتك؟</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">جاهز توفر منتجاتك؟</h2>
             <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
             <a
               href="https://wa.me/212778133038"

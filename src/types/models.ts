@@ -1,22 +1,27 @@
 import type { OrderStatus, PlanType } from "./auth";
 
+export type VisibilityLevel = "standard" | "premium" | "vip";
+export type ProductApprovalStatus = "pending" | "approved" | "rejected";
+
 export interface Product {
   id: string;
   name: string;
-  price: number;
+  sellingPrice: number;
+  costPrice: number;
   commission: number;
   category: string;
   image: string;
   description?: string;
   merchantId: string;
   merchantName?: string;
-  merchantPlan?: PlanType;
   stock: number;
   views: number;
   clicks: number;
   orders: number;
   conversionRate: number;
   isActive: boolean;
+  visibilityLevel: VisibilityLevel;
+  approvalStatus: ProductApprovalStatus;
   createdAt: string;
 }
 
@@ -29,7 +34,9 @@ export interface Order {
   city: string;
   status: OrderStatus;
   commission: number;
-  price: number;
+  sellingPrice: number;
+  costPrice: number;
+  platformProfit: number;
   affiliateId: string;
   affiliateName?: string;
   merchantId: string;
@@ -92,5 +99,6 @@ export interface PlatformStats {
   totalOrders: number;
   totalRevenue: number;
   totalCommissions: number;
+  platformProfit: number;
   monthlyGrowth: number;
 }

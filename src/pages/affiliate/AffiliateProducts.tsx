@@ -1,29 +1,15 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
-import ProductCard from "@/components/shared/ProductCard";
 import { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, Package } from "lucide-react";
 
 const categories = ["الكل", "الكترونيات", "تجميل", "ملابس", "منتجات ترند"];
-
-const products = [
-  { image: "/placeholder.svg", name: "سماعات بلوتوث لاسلكية", price: 199, commission: 40, category: "الكترونيات", merchantName: "متجر التقنية", merchantPlan: "vip" as const, views: 1240, orders: 45, conversionRate: 11.8 },
-  { image: "/placeholder.svg", name: "كريم العناية بالبشرة", price: 149, commission: 35, category: "تجميل", merchantName: "متجر الجمال", merchantPlan: "premium" as const, views: 890, orders: 32, conversionRate: 15.2 },
-  { image: "/placeholder.svg", name: "حزام رياضي ذكي", price: 249, commission: 50, category: "الكترونيات", merchantName: "متجر التقنية", merchantPlan: "vip" as const, views: 670, orders: 18, conversionRate: 12.0 },
-  { image: "/placeholder.svg", name: "عطر فاخر للرجال", price: 320, commission: 60, category: "تجميل", merchantName: "عطور المغرب", merchantPlan: "standard" as const, views: 450, orders: 12, conversionRate: 10.0 },
-  { image: "/placeholder.svg", name: "تيشيرت قطني", price: 89, commission: 20, category: "ملابس", merchantName: "ملابس الأناقة", merchantPlan: "premium" as const, views: 320, orders: 8, conversionRate: 10.0 },
-  { image: "/placeholder.svg", name: "ساعة رقمية", price: 179, commission: 45, category: "منتجات ترند", merchantName: "متجر التقنية", merchantPlan: "vip" as const, views: 980, orders: 38, conversionRate: 13.1 },
-];
-
-const planPriority = { vip: 0, premium: 1, standard: 2 };
 
 const AffiliateProducts = () => {
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [search, setSearch] = useState("");
 
-  const filtered = products
-    .filter(p => activeCategory === "الكل" || p.category === activeCategory)
-    .filter(p => !search || p.name.includes(search))
-    .sort((a, b) => planPriority[a.merchantPlan] - planPriority[b.merchantPlan]);
+  // Empty — products will come from API
+  const products: any[] = [];
 
   return (
     <AffiliateLayout>
@@ -58,19 +44,13 @@ const AffiliateProducts = () => {
           ))}
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          المنتجات مرتبة حسب خطة التاجر: VIP أولاً، ثم Premium، ثم Standard
-        </p>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((p, i) => (
-            <ProductCard key={i} {...p} showActions />
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>لا توجد منتجات مطابقة للبحث</p>
+        {products.length === 0 && (
+          <div className="glass-card p-12 text-center space-y-3">
+            <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-muted-foreground">لا توجد منتجات متاحة حالياً</p>
+            <p className="text-sm text-muted-foreground/70">سيتم إضافة المنتجات قريباً</p>
           </div>
         )}
       </div>
