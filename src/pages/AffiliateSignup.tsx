@@ -26,7 +26,7 @@ const AffiliateSignup = () => {
     setLoading(true);
     try {
       await signupAffiliate(form);
-      navigate("/affiliate/dashboard", { replace: true });
+      navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل إنشاء الحساب");
     } finally {

@@ -11,6 +11,9 @@ const PublicHeader = () => {
           <img src={codconnectLogo} alt="CodConnect" className="h-10 w-auto" />
         </div>
         <div className="flex items-center gap-3">
+          <Link to="/merchant-home" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            أصحاب المنتجات
+          </Link>
           <Link to="/affiliate-signup" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             إنشاء حساب
           </Link>
