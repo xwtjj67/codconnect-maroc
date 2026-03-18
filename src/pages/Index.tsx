@@ -1,10 +1,11 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
-  Users, ShoppingCart, ClipboardCheck, Search, Wallet,
+  Users, ShoppingCart, ClipboardCheck, Search, Wallet, LogIn,
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
@@ -32,9 +33,7 @@ const useCountdown = (hours: number) => {
 
 const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
 const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(
-    `أنا عميل مسوق وكنهتم بالاشتراك معكم في باقاتكم. بعد الاطلاع على الخيارات المتاحة، أحب أبدأ معكم مباشرة بخطة ${planName}.`
-  );
+  const msg = encodeURIComponent(`أريد الاشتراك في خطة ${planName}`);
   return `${WHATSAPP_BASE}${msg}`;
 };
 
@@ -225,7 +224,7 @@ const Index = () => {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
             نوفر لك منتجات جاهزة للتسويق
             <br />
-            <span className="text-primary">بنظام COD — بدون رأس مال</span>
+            <span className="text-primary">عبر نظام COD — بدون رأس مال</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             سجل كمسوق، اختر المنتجات، وابدأ الربح من العمولات.
@@ -233,11 +232,21 @@ const Index = () => {
             CodConnect تتكفل بالمنتج، الشحن، والتأكيد.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#pricing" className="px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity teal-glow">
+            <Link to="/affiliate-signup" className="px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity teal-glow flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              إنشاء حساب
+            </Link>
+            <Link to="/login" className="px-8 py-3 rounded-xl border-2 border-primary/40 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors flex items-center gap-2">
+              <LogIn className="h-5 w-5" />
+              تسجيل الدخول
+            </Link>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="#pricing" className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors">
               شوف الباقات
             </a>
-            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-xl border-2 border-primary/40 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
+            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
               تواصل معنا
             </a>
           </div>
@@ -296,26 +305,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 lg:py-24">
-        <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">أرقام المنصة</h2>
-          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {[
-              { label: "مسوقين نشطين", value: "+120", icon: Users },
-              { label: "طلبات مؤكدة", value: "+340", icon: ShoppingCart },
-              { label: "منتجات متوفرة", value: "+48", icon: Package },
-            ].map((s, i) => (
-              <div key={i} className="glass-card p-6 text-center space-y-2">
-                <s.icon className="h-8 w-8 text-primary mx-auto" />
-                <p className="text-3xl font-bold text-foreground">{s.value}</p>
-                <p className="text-sm text-muted-foreground">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing Plans */}
       <PricingSection />
 
@@ -324,16 +313,25 @@ const Index = () => {
         <div className="container text-center space-y-8">
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 teal-glow">
             <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ تسويق وتربح؟</h2>
-            <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
-            <a
-              href="https://wa.me/212778133038"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
-            >
-              <MessageCircle className="h-5 w-5" />
-              تواصل عبر واتساب
-            </a>
+            <p className="text-muted-foreground">سجل الآن أو تواصل معنا عبر واتساب</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                to="/affiliate-signup"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
+              >
+                <UserPlus className="h-5 w-5" />
+                سجل الآن مجاناً
+              </Link>
+              <a
+                href="https://wa.me/212778133038"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border-2 border-primary/30 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors"
+              >
+                <MessageCircle className="h-5 w-5" />
+                تواصل عبر واتساب
+              </a>
+            </div>
           </div>
         </div>
       </section>

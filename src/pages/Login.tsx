@@ -23,14 +23,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(phone, password);
-      const stored = localStorage.getItem("auth_user");
-      if (stored) {
-        const user = JSON.parse(stored);
-        const path = user.role === "admin" ? "/admin/dashboard"
-          : user.role === "merchant" ? "/merchant/dashboard"
-          : "/affiliate/dashboard";
-        navigate(path, { replace: true });
-      }
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل تسجيل الدخول");
     } finally {
@@ -84,10 +77,16 @@ const Login = () => {
             </button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            ما عندكش حساب؟{" "}
-            <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق</Link>
-          </p>
+          <div className="text-center space-y-2 text-sm text-muted-foreground">
+            <p>
+              ما عندكش حساب؟{" "}
+              <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق</Link>
+            </p>
+            <p>
+              عندك منتجات؟{" "}
+              <Link to="/merchant-signup" className="text-accent hover:underline">سجل كصاحب منتجات</Link>
+            </p>
+          </div>
         </div>
       </div>
     </PublicLayout>
