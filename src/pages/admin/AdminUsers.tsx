@@ -116,7 +116,7 @@ const AdminUsers = () => {
                         <div className="flex items-center gap-1">
                           {u.status !== "active" && <button onClick={() => updateStatus(u.id, "active")} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><CheckCircle className="h-4 w-4" /></button>}
                           {u.status !== "suspended" && <button onClick={() => updateStatus(u.id, "suspended")} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><XCircle className="h-4 w-4" /></button>}
-                          {u.phone && <a href={`${WHATSAPP_BASE}${u.phone.replace(/^0/, "212")}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><MessageCircle className="h-4 w-4" /></a>}
+                          {u.phone && <button onClick={() => openWhatsApp(u.phone)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><MessageCircle className="h-4 w-4" /></button>}
                         </div>
                       </td>
                     </tr>

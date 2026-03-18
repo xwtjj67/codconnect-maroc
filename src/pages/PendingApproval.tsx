@@ -47,15 +47,13 @@ const PendingApproval = () => {
             </ol>
           </div>
 
-          <a
-            href={WHATSAPP_ACTIVATION}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={openWhatsAppActivation}
             className="inline-flex items-center gap-2 px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity teal-glow"
           >
             <MessageCircle className="h-5 w-5" />
             تواصل عبر واتساب للتفعيل
-          </a>
+          </button>
 
           <button
             onClick={logout}

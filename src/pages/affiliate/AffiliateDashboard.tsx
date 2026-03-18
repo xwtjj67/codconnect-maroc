@@ -60,14 +60,12 @@ const AffiliateDashboard = () => {
               <p className="text-sm text-muted-foreground">العمولة: {plan.commission}% • {plan.price} DH/شهر</p>
             </div>
             {user?.plan !== "vip" && (
-              <a
-                href={`https://api.whatsapp.com/send?phone=212778133038&text=${encodeURIComponent(`أريد ترقية خطتي`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => window.open(`https://wa.me/212778133038?text=${encodeURIComponent("أريد ترقية خطتي")}`, "_blank")}
                 className="px-4 py-2 rounded-lg gradient-teal text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
               >
                 <TrendingUp className="h-4 w-4" /> ترقية الخطة
-              </a>
+              </button>
             )}
           </div>
         </div>

@@ -216,15 +216,13 @@ const MerchantHome = () => {
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 border-accent/30 shadow-[0_0_40px_rgba(202,158,60,0.15)]">
             <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ البيع؟</h2>
             <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
-            <a
-              href="https://wa.me/212778133038"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openWhatsApp("مرحبا، أريد الاشتراك كمورد منتجات")}
               className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-accent text-accent-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
             >
               <MessageCircle className="h-5 w-5" />
               تواصل عبر واتساب
-            </a>
+            </button>
           </div>
         </div>
       </section>

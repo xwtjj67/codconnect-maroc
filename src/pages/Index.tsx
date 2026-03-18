@@ -409,15 +409,13 @@ const Index = () => {
                 <Rocket className="h-5 w-5" />
                 ابدأ الربح اليوم
               </Link>
-              <a
-                href="https://wa.me/212778133038"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => openWhatsApp("مرحبا، أريد الانضمام لـ CodConnect")}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border-2 border-primary/30 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors"
               >
                 <MessageCircle className="h-5 w-5" />
                 تواصل عبر واتساب
-              </a>
+              </button>
             </div>
             <p className="text-xs text-muted-foreground/60">
               ✅ تسجيل سريع • ✅ بدون التزام • ✅ منتجات جاهزة
