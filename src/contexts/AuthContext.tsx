@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import type { User, UserRole, PlanType, PLANS } from "@/types/auth";
+import type { User, UserRole, PlanType } from "@/types/auth";
 import { authService } from "@/services/authService";
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isPending: boolean;
   login: (phone: string, password: string) => Promise<void>;
   signupAffiliate: (data: { name: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
   signupMerchant: (data: { name: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
@@ -62,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => { authService.logout(); setUser(null); };
   const hasRole = (role: UserRole) => user?.role === role;
   const hasPlan = (plan: PlanType) => user?.plan === plan;
+  const isPending = !!user && user.status !== "active" && user.status !== "suspended";
   const canAddProduct = (currentCount: number) => {
     if (!user) return false;
     const limit = planLimits[user.plan];
@@ -69,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, signupAffiliate, signupMerchant, logout, hasRole, hasPlan, canAddProduct }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, isPending, login, signupAffiliate, signupMerchant, logout, hasRole, hasPlan, canAddProduct }}>
       {children}
     </AuthContext.Provider>
   );
