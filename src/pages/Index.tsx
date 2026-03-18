@@ -187,10 +187,8 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <a
-                  href={getWhatsAppLink(plan.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => openWhatsApp(`أريد الاشتراك في خطة ${plan.name}`)}
                   className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
                     plan.highlighted
                       ? "gradient-teal text-primary-foreground teal-glow hover:opacity-90"
@@ -199,7 +197,7 @@ const PricingSection = () => {
                 >
                   <MessageCircle className="h-4 w-4" />
                   {plan.cta}
-                </a>
+                </button>
               </div>
             </div>
           ))}
