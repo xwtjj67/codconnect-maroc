@@ -233,7 +233,7 @@ const AdminProducts = () => {
             <div className="space-y-4 mt-2">
               <div className="p-3 rounded-lg bg-secondary/50 space-y-1">
                 <p className="font-bold">{editProduct.name}</p>
-                <p className="text-sm text-muted-foreground">صاحب المنتج: {editProduct.merchantName}</p>
+                <p className="text-sm text-muted-foreground">المورد: {editProduct.merchantName}</p>
                 <p className="text-sm text-muted-foreground">سعر التكلفة: <span className="font-bold text-foreground">{editProduct.costPrice} DH</span></p>
               </div>
 
