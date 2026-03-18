@@ -62,7 +62,7 @@ const Support = () => {
               <p className="font-semibold">تواصل عبر واتساب</p>
               <p className="text-sm text-muted-foreground">دعم مباشر وسريع</p>
             </div>
-          </a>
+          </button>
         </div>
       </div>
     </PublicLayout>
