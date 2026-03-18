@@ -278,16 +278,37 @@ const Index = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">كيفاش تبدأ؟</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: "١", title: "سجل حسابك", desc: "أنشئ حسابك كمسوق واختر الباقة المناسبة", icon: UserPlus },
-              { step: "٢", title: "اختر المنتجات", desc: "تصفح المنتجات الجاهزة وابدأ الترويج لها", icon: Package },
-              { step: "٣", title: "اربح العمولة", desc: "عند تأكيد الطلب، تربح عمولتك مباشرة", icon: BadgeDollarSign },
+              { step: "الخطوة الأولى", title: "سجل حسابك", desc: "أنشئ حسابك كمسوق واختر الباقة المناسبة", icon: UserPlus },
+              { step: "الخطوة الثانية", title: "اختر المنتجات", desc: "تصفح المنتجات الجاهزة وابدأ الترويج لها", icon: Package },
+              { step: "الخطوة الثالثة", title: "اربح العمولة", desc: "عند تأكيد الطلب، تربح عمولتك مباشرة", icon: BadgeDollarSign },
             ].map((item, i) => (
               <div key={i} className="text-center space-y-4">
-                <div className="h-16 w-16 rounded-2xl gradient-teal flex items-center justify-center mx-auto text-primary-foreground text-2xl font-bold">
-                  {item.step}
+                <div className="h-14 w-14 rounded-2xl gradient-teal flex items-center justify-center mx-auto">
+                  <item.icon className="h-7 w-7 text-primary-foreground" />
                 </div>
+                <p className="text-xs font-semibold text-primary">{item.step}</p>
                 <h3 className="text-xl font-bold">{item.title}</h3>
                 <p className="text-muted-foreground text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-16 lg:py-24">
+        <div className="container">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">أرقام المنصة</h2>
+          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
+            {[
+              { label: "مسوقين نشطين", value: "+120", icon: Users },
+              { label: "طلبات مؤكدة", value: "+340", icon: ShoppingCart },
+              { label: "منتجات متوفرة", value: "+48", icon: Package },
+            ].map((s, i) => (
+              <div key={i} className="glass-card p-6 text-center space-y-2">
+                <s.icon className="h-8 w-8 text-primary mx-auto" />
+                <p className="text-3xl font-bold text-foreground">{s.value}</p>
+                <p className="text-sm text-muted-foreground">{s.label}</p>
               </div>
             ))}
           </div>
