@@ -1,14 +1,30 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import StatCard from "@/components/shared/StatCard";
-import { DollarSign, ShoppingCart, Target, Users } from "lucide-react";
+import { DollarSign, ShoppingCart, Target, Users, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PlanBadge from "@/components/shared/PlanBadge";
 import { PLANS } from "@/types/auth";
-import { TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const AffiliateDashboard = () => {
   const { user } = useAuth();
   const plan = user?.plan ? PLANS[user.plan] : PLANS.standard;
+  const [stats, setStats] = useState({ earnings: 0, orders: 0, pending: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetch = async () => {
+      const { data: orders } = await supabase.from("orders").select("*").eq("affiliate_id", user.id);
+      const confirmed = (orders || []).filter(o => ["confirmed", "delivered"].includes(o.status));
+      const pendingCount = (orders || []).filter(o => o.status === "pending").length;
+      const earnings = confirmed.reduce((s, o) => s + Number(o.commission_amount), 0);
+      setStats({ earnings, orders: (orders || []).length, pending: pendingCount });
+      setLoading(false);
+    };
+    fetch();
+  }, [user]);
 
   return (
     <AffiliateLayout>
@@ -21,27 +37,27 @@ const AffiliateDashboard = () => {
           {user?.plan && <PlanBadge plan={user.plan} />}
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="الأرباح" value={0} icon={<DollarSign className="h-6 w-6" />} suffix=" DH" tooltip="إجمالي العمولات المؤكدة" />
-          <StatCard title="الطلبات" value={0} icon={<ShoppingCart className="h-6 w-6" />} tooltip="عدد الطلبات هذا الشهر" />
-          <StatCard title="معدل التحويل" value={0} icon={<Target className="h-6 w-6" />} suffix="%" tooltip="نسبة النقرات التي تحولت لطلبات" />
-          <StatCard title="الإحالات" value={0} icon={<Users className="h-6 w-6" />} tooltip="عدد المسجلين عبر رابط الإحالة" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatCard title="الأرباح المؤكدة" value={stats.earnings} icon={<DollarSign className="h-6 w-6" />} suffix=" DH" tooltip="إجمالي العمولات المؤكدة" />
+          <StatCard title="إجمالي الطلبات" value={stats.orders} icon={<ShoppingCart className="h-6 w-6" />} tooltip="عدد الطلبات الإجمالي" />
+          <StatCard title="قيد الانتظار" value={stats.pending} icon={<Target className="h-6 w-6" />} tooltip="طلبات لم يتم تأكيدها بعد" />
         </div>
 
-        {/* Empty State */}
-        <div className="glass-card p-8 text-center space-y-3">
-          <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto">
-            <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+        {stats.orders === 0 && !loading && (
+          <div className="glass-card p-8 text-center space-y-3">
+            <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto">
+              <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-muted-foreground">لا توجد بيانات بعد</p>
+            <p className="text-sm text-muted-foreground/70">ابدأ بالترويج للمنتجات لتظهر إحصائياتك هنا</p>
           </div>
-          <p className="text-lg font-medium text-muted-foreground">لا توجد بيانات بعد</p>
-          <p className="text-sm text-muted-foreground/70">ابدأ بالترويج للمنتجات لتظهر إحصائياتك هنا</p>
-        </div>
+        )}
 
         <div className="glass-card p-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="font-semibold mb-1">خطتك الحالية: {plan.label}</h2>
-              <p className="text-sm text-muted-foreground">العمولة: {plan.commission}% • {plan.price} DH</p>
+              <p className="text-sm text-muted-foreground">العمولة: {plan.commission}% • {plan.price} DH/شهر</p>
             </div>
             {user?.plan !== "vip" && (
               <a
