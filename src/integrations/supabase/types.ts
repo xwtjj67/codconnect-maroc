@@ -14,16 +14,362 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      affiliate_links: {
+        Row: {
+          affiliate_id: string
+          clicks: number
+          code: string
+          created_at: string
+          id: string
+          product_id: string
+          sales: number
+        }
+        Insert: {
+          affiliate_id: string
+          clicks?: number
+          code: string
+          created_at?: string
+          id?: string
+          product_id: string
+          sales?: number
+        }
+        Update: {
+          affiliate_id?: string
+          clicks?: number
+          code?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          sales?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approvals: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      commissions: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          created_at: string
+          id: string
+          order_id: string
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          order_id: string
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          affiliate_id: string
+          city: string
+          client_name: string
+          client_phone: string
+          commission_amount: number
+          cost_price: number
+          created_at: string
+          id: string
+          merchant_id: string
+          platform_profit: number
+          product_id: string
+          selling_price: number
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          city: string
+          client_name: string
+          client_phone: string
+          commission_amount?: number
+          cost_price: number
+          created_at?: string
+          id?: string
+          merchant_id: string
+          platform_profit?: number
+          product_id: string
+          selling_price: number
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          city?: string
+          client_name?: string
+          client_phone?: string
+          commission_amount?: number
+          cost_price?: number
+          created_at?: string
+          id?: string
+          merchant_id?: string
+          platform_profit?: number
+          product_id?: string
+          selling_price?: number
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          category: string | null
+          clicks: number
+          commission: number | null
+          cost_price: number
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_active: boolean
+          merchant_id: string
+          name: string
+          orders_count: number
+          selling_price: number | null
+          stock: number
+          updated_at: string
+          views: number
+          visibility: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          category?: string | null
+          clicks?: number
+          commission?: number | null
+          cost_price: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          merchant_id: string
+          name: string
+          orders_count?: number
+          selling_price?: number | null
+          stock?: number
+          updated_at?: string
+          views?: number
+          visibility?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          category?: string | null
+          clicks?: number
+          commission?: number | null
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          merchant_id?: string
+          name?: string
+          orders_count?: number
+          selling_price?: number | null
+          stock?: number
+          updated_at?: string
+          views?: number
+          visibility?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          store_name: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id: string
+          name: string
+          phone: string
+          store_name?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          store_name?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          plan: Database["public"]["Enums"]["plan_type"] | null
+          seller_plan: Database["public"]["Enums"]["seller_plan_type"] | null
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          plan?: Database["public"]["Enums"]["plan_type"] | null
+          seller_plan?: Database["public"]["Enums"]["seller_plan_type"] | null
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          plan?: Database["public"]["Enums"]["plan_type"] | null
+          seller_plan?: Database["public"]["Enums"]["seller_plan_type"] | null
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_statuses: {
+        Row: {
+          id: string
+          status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "affiliate" | "product_owner" | "admin"
+      approval_status: "pending" | "approved" | "rejected"
+      order_status:
+        | "pending"
+        | "confirmed"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+      plan_type: "standard" | "premium" | "vip"
+      seller_plan_type: "basic" | "pro"
+      user_status: "pending" | "approved" | "active" | "suspended"
+      visibility_level: "standard" | "premium" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +496,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["affiliate", "product_owner", "admin"],
+      approval_status: ["pending", "approved", "rejected"],
+      order_status: [
+        "pending",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
+      plan_type: ["standard", "premium", "vip"],
+      seller_plan_type: ["basic", "pro"],
+      user_status: ["pending", "approved", "active", "suspended"],
+      visibility_level: ["standard", "premium", "vip"],
+    },
   },
 } as const
