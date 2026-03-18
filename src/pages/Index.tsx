@@ -251,10 +251,10 @@ const Index = () => {
               <LogIn className="h-4 w-4" />
               تسجيل الدخول
             </Link>
-            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+            <button onClick={() => openWhatsApp("مرحبا، عندي استفسار عن CodConnect")} className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
               تواصل معنا
-            </a>
+            </button>
           </div>
           <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-muted-foreground/70">
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> منصة مغربية 100%</span>
