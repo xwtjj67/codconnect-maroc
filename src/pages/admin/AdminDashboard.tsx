@@ -51,7 +51,7 @@ const AdminDashboard = () => {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="المسوقين" value={stats.affiliates} icon={<UserCheck className="h-6 w-6" />} />
-          <StatCard title="أصحاب المنتجات" value={stats.merchants} icon={<Store className="h-6 w-6" />} />
+          <StatCard title="الموردين" value={stats.merchants} icon={<Store className="h-6 w-6" />} />
           <StatCard title="العمولات" value={stats.totalCommissions} icon={<TrendingUp className="h-6 w-6" />} suffix=" DH" />
           <StatCard title="في انتظار التفعيل" value={stats.pendingUsers} icon={<Clock className="h-6 w-6" />} />
         </div>
