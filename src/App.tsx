@@ -9,8 +9,9 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import AffiliateSignup from "./pages/AffiliateSignup";
-// MerchantSignup kept as internal-only route (not linked publicly)
 import MerchantSignup from "./pages/MerchantSignup";
+import MerchantHome from "./pages/MerchantHome";
+import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
 
@@ -34,10 +35,18 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 const queryClient = new QueryClient();
 
 const DashboardRedirect = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isPending } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (isPending) return <Navigate to="/pending-approval" replace />;
   if (user?.role === "admin") return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to={user?.role === "merchant" ? "/merchant/dashboard" : "/affiliate/dashboard"} replace />;
+};
+
+const PendingRoute = () => {
+  const { isAuthenticated, isPending } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isPending) return <Navigate to="/dashboard" replace />;
+  return <PendingApproval />;
 };
 
 const App = () => (
@@ -49,9 +58,11 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/merchant-home" element={<MerchantHome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/affiliate-signup" element={<AffiliateSignup />} />
             <Route path="/merchant-signup" element={<MerchantSignup />} />
+            <Route path="/pending-approval" element={<PendingRoute />} />
             <Route path="/support" element={<Support />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
 

@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, isPending } = useAuth();
 
   if (isLoading) {
     return (
@@ -19,6 +19,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  // Redirect pending users to approval page
+  if (isPending) return <Navigate to="/pending-approval" replace />;
 
   if (requiredRole && user?.role !== requiredRole) {
     const redirect = user?.role === "admin" ? "/admin/dashboard"
