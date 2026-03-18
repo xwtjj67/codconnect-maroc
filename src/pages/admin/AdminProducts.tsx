@@ -173,7 +173,7 @@ const AdminProducts = () => {
                 <thead>
                   <tr className="border-b border-border/50">
                     <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">صاحب المنتج</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">المورد</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">العمولة</th>
