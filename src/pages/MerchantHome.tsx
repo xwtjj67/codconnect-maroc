@@ -7,10 +7,8 @@ import {
   ShoppingCart, CheckCircle, Warehouse,
 } from "lucide-react";
 
-const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
-const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${planName}.`);
-  return `${WHATSAPP_BASE}${msg}`;
+const openWhatsApp = (text: string) => {
+  window.open(`https://wa.me/212778133038?text=${encodeURIComponent(text)}`, "_blank");
 };
 
 const sellerPlans = [
@@ -194,10 +192,8 @@ const MerchantHome = () => {
                     ))}
                   </ul>
 
-                  <a
-                    href={getWhatsAppLink(plan.name)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => openWhatsApp(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${plan.name}.`)}
                     className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
                       plan.highlighted
                         ? "bg-accent text-accent-foreground shadow-[0_0_20px_rgba(202,158,60,0.3)] hover:opacity-90"
@@ -206,7 +202,7 @@ const MerchantHome = () => {
                   >
                     <MessageCircle className="h-4 w-4" />
                     {plan.cta}
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
@@ -220,15 +216,13 @@ const MerchantHome = () => {
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 border-accent/30 shadow-[0_0_40px_rgba(202,158,60,0.15)]">
             <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ البيع؟</h2>
             <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
-            <a
-              href="https://wa.me/212778133038"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openWhatsApp("مرحبا، أريد الاشتراك كمورد منتجات")}
               className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-accent text-accent-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
             >
               <MessageCircle className="h-5 w-5" />
               تواصل عبر واتساب
-            </a>
+            </button>
           </div>
         </div>
       </section>

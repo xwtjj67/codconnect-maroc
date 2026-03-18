@@ -51,10 +51,8 @@ const Support = () => {
             </form>
           </div>
 
-          <a
-            href="https://wa.me/212778133038"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => window.open("https://wa.me/212778133038", "_blank")}
             className="glass-card-hover p-5 flex items-center gap-4 group"
           >
             <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 group-hover:bg-green-500/30 transition-colors">
@@ -64,7 +62,7 @@ const Support = () => {
               <p className="font-semibold">تواصل عبر واتساب</p>
               <p className="text-sm text-muted-foreground">دعم مباشر وسريع</p>
             </div>
-          </a>
+          </button>
         </div>
       </div>
     </PublicLayout>

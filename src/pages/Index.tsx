@@ -32,10 +32,8 @@ const useCountdown = (hours: number) => {
   return { h, m, s, expired: timeLeft <= 0 };
 };
 
-const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
-const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(`أريد الاشتراك في خطة ${planName}`);
-  return `${WHATSAPP_BASE}${msg}`;
+const openWhatsApp = (text: string) => {
+  window.open(`https://wa.me/212778133038?text=${encodeURIComponent(text)}`, "_blank");
 };
 
 const plans = [
@@ -189,10 +187,8 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <a
-                  href={getWhatsAppLink(plan.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => openWhatsApp(`أريد الاشتراك في خطة ${plan.name}`)}
                   className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
                     plan.highlighted
                       ? "gradient-teal text-primary-foreground teal-glow hover:opacity-90"
@@ -201,7 +197,7 @@ const PricingSection = () => {
                 >
                   <MessageCircle className="h-4 w-4" />
                   {plan.cta}
-                </a>
+                </button>
               </div>
             </div>
           ))}
@@ -253,10 +249,10 @@ const Index = () => {
               <LogIn className="h-4 w-4" />
               تسجيل الدخول
             </Link>
-            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors flex items-center gap-2">
+            <button onClick={() => openWhatsApp("مرحبا، عندي استفسار عن CodConnect")} className="px-6 py-2.5 rounded-lg bg-secondary/50 text-foreground font-medium hover:bg-secondary transition-colors flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
               تواصل معنا
-            </a>
+            </button>
           </div>
           <div className="flex items-center justify-center gap-6 flex-wrap text-sm text-muted-foreground/70">
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> منصة مغربية 100%</span>
@@ -413,15 +409,13 @@ const Index = () => {
                 <Rocket className="h-5 w-5" />
                 ابدأ الربح اليوم
               </Link>
-              <a
-                href="https://wa.me/212778133038"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => openWhatsApp("مرحبا، أريد الانضمام لـ CodConnect")}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border-2 border-primary/30 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors"
               >
                 <MessageCircle className="h-5 w-5" />
                 تواصل عبر واتساب
-              </a>
+              </button>
             </div>
             <p className="text-xs text-muted-foreground/60">
               ✅ تسجيل سريع • ✅ بدون التزام • ✅ منتجات جاهزة

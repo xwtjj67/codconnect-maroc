@@ -33,9 +33,9 @@ const PublicFooter = () => {
             CodConnect — منصة مغربية للتوريد والتسويق بنظام الدفع عند الاستلام (COD)
           </p>
           <div className="flex items-center gap-6">
-            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-teal-glow transition-colors">
+            <button onClick={() => window.open("https://wa.me/212778133038", "_blank")} className="text-primary hover:text-teal-glow transition-colors">
               <MessageCircle className="h-5 w-5" />
-            </a>
+            </button>
             <a href="https://instagram.com/codconnect_" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-teal-glow transition-colors">
               <Instagram className="h-5 w-5" />
             </a>

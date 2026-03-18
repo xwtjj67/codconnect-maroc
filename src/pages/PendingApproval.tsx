@@ -2,8 +2,9 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Clock, MessageCircle, ShieldCheck } from "lucide-react";
 
-const WHATSAPP_ACTIVATION = "https://api.whatsapp.com/send?phone=212778133038&text=" +
-  encodeURIComponent("أنا سجلت في المنصة وأريد تفعيل حسابي");
+const openWhatsAppActivation = () => {
+  window.open(`https://wa.me/212778133038?text=${encodeURIComponent("أنا سجلت في المنصة وأريد تفعيل حسابي")}`, "_blank");
+};
 
 const PendingApproval = () => {
   const { user, logout } = useAuth();
@@ -46,15 +47,13 @@ const PendingApproval = () => {
             </ol>
           </div>
 
-          <a
-            href={WHATSAPP_ACTIVATION}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={openWhatsAppActivation}
             className="inline-flex items-center gap-2 px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity teal-glow"
           >
             <MessageCircle className="h-5 w-5" />
             تواصل عبر واتساب للتفعيل
-          </a>
+          </button>
 
           <button
             onClick={logout}
