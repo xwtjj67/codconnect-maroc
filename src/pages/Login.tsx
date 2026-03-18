@@ -84,19 +84,10 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              ما عندكش حساب؟{" "}
-              <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق</Link>
-              {" أو "}
-              <Link to="/merchant-signup" className="text-accent hover:underline">سجل كتاجر</Link>
-            </p>
-          </div>
-
-          <div className="text-center space-y-1">
-            <p className="text-xs text-muted-foreground/60">تجربة: 06X = مسوق، 07X = تاجر، 0500000000 = أدمن</p>
-            <p className="text-xs text-muted-foreground/60">الرقم ينتهي بـ 1 = Premium، بـ 2 = VIP</p>
-          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            ما عندكش حساب؟{" "}
+            <Link to="/affiliate-signup" className="text-primary hover:underline">سجل كمسوق</Link>
+          </p>
         </div>
       </div>
     </PublicLayout>

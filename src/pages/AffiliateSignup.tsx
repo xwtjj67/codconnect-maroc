@@ -39,8 +39,8 @@ const AffiliateSignup = () => {
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md glass-card p-8 space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">افتح حسابك كمسوق في CodConnect</h1>
-            <p className="text-sm text-muted-foreground">سجل مجانا وابدأ في الربح من العمولات</p>
+            <h1 className="text-2xl font-bold">سجل كمسوق في CodConnect</h1>
+            <p className="text-sm text-muted-foreground">أنشئ حسابك وابدأ الربح من العمولات</p>
           </div>
 
           {error && (
@@ -79,9 +79,6 @@ const AffiliateSignup = () => {
           <p className="text-center text-sm text-muted-foreground">
             عندك حساب؟{" "}
             <Link to="/login" className="text-primary hover:underline">تسجيل الدخول</Link>
-          </p>
-          <p className="text-center text-sm text-muted-foreground">
-            <Link to="/merchant-signup" className="text-accent hover:underline">سجل كتاجر بدلا من ذلك</Link>
           </p>
         </div>
       </div>

@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import AffiliateSignup from "./pages/AffiliateSignup";
+// MerchantSignup kept as internal-only route (not linked publicly)
 import MerchantSignup from "./pages/MerchantSignup";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";

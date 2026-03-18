@@ -1,11 +1,9 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
-  TrendingUp, Users, ShoppingCart, Store, Check, Star, Zap, BookOpen,
-  Video, Clock, LayoutGrid, MessageCircle, Crown, Layers, BarChart3,
-  GraduationCap, Shield, Infinity, Rocket, Flame, Timer
+  TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
+  GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
@@ -29,6 +27,14 @@ const useCountdown = (hours: number) => {
   const m = Math.floor((timeLeft % 3600000) / 60000);
   const s = Math.floor((timeLeft % 60000) / 1000);
   return { h, m, s, expired: timeLeft <= 0 };
+};
+
+const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
+const getWhatsAppLink = (planName: string) => {
+  const msg = encodeURIComponent(
+    `أنا عميل مسوق وكنهتم بالاشتراك معكم في باقاتكم. بعد الاطلاع على الخيارات المتاحة، أحب أبدأ معكم مباشرة بخطة ${planName}.`
+  );
+  return `${WHATSAPP_BASE}${msg}`;
 };
 
 const plans = [
@@ -59,7 +65,6 @@ const plans = [
       { icon: Package, text: "عدد المنتجات: 5" },
       { icon: Clock, text: "مدة سحب الأرباح: 20 يوم" },
       { icon: Layers, text: "صفحة منتج مفصلة" },
-      { icon: Users, text: "وصول للمجموعة الخاصة" },
       { icon: Star, text: "أولوية في عرض المنتجات" },
       { icon: GraduationCap, text: "دورة فيديو مدمجة" },
     ],
@@ -98,13 +103,13 @@ const PricingSection = () => {
   const { h, m, s, expired } = useCountdown(48);
 
   return (
-    <section className="py-16 lg:py-24 relative overflow-hidden">
+    <section id="pricing" className="py-16 lg:py-24 relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
       <div className="container relative">
         <div className="text-center space-y-4 mb-8">
           <h2 className="text-3xl md:text-4xl font-bold">اختر الخطة المناسبة لك</h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            ابدأ تجارتك عبر نظام COD بسهولة وبدون رأس مال
+            ابدأ التسويق عبر نظام COD بسهولة وبدون رأس مال
           </p>
         </div>
 
@@ -118,6 +123,9 @@ const PricingSection = () => {
                 <span>🔥 عرض الإطلاق — ينتهي خلال 48 ساعة</span>
                 <Flame className="h-5 w-5" />
               </div>
+              <p className="relative text-sm text-muted-foreground">
+                ابدأ الآن قبل انتهاء العرض واستفد من أقل سعر
+              </p>
               <div className="relative flex items-center justify-center gap-3">
                 <Timer className="h-4 w-4 text-muted-foreground" />
                 <div className="flex items-center gap-2">
@@ -182,16 +190,19 @@ const PricingSection = () => {
                   ))}
                 </ul>
 
-                <Link
-                  to="/affiliate-signup"
-                  className={`block text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
+                <a
+                  href={getWhatsAppLink(plan.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
                     plan.highlighted
                       ? "gradient-teal text-primary-foreground teal-glow hover:opacity-90"
                       : "border-2 border-primary/30 text-primary hover:bg-primary/10"
                   }`}
                 >
+                  <MessageCircle className="h-4 w-4" />
                   {plan.cta}
-                </Link>
+                </a>
               </div>
             </div>
           ))}
@@ -211,22 +222,23 @@ const Index = () => {
         <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-teal-glow/5 rounded-full blur-3xl animate-glow-pulse" />
         <div className="container relative text-center space-y-8">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-            ابدأ التجارة بلا رأس مال
+            نوفر لك منتجات جاهزة للتسويق
             <br />
-            <span className="text-primary">عبر نظام COD</span>
+            <span className="text-primary">بنظام COD — بدون رأس مال</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            سواء كنت تاجرًا تريد بيع منتجاتك عبر شبكة مسوقين،
+            سجل كمسوق، اختر المنتجات، وابدأ الربح من العمولات.
             <br />
-            أو مسوقًا ترغب في الربح بدون مخزون — CodConnect تربطك بالحل الكامل.
+            CodConnect تتكفل بالمنتج، الشحن، والتأكيد.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/affiliate-signup" className="px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity teal-glow">
-              سجل كمسوق
-            </Link>
-            <Link to="/merchant-signup" className="px-8 py-3 rounded-xl border-2 border-primary/40 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors">
-              سجل كتاجر
-            </Link>
+            <a href="#pricing" className="px-8 py-3 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity teal-glow">
+              شوف الباقات
+            </a>
+            <a href="https://wa.me/212778133038" target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-xl border-2 border-primary/40 text-primary font-semibold text-lg hover:bg-primary/10 transition-colors flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              تواصل معنا
+            </a>
           </div>
           <p className="text-sm text-muted-foreground/70 flex items-center justify-center gap-3 flex-wrap">
             <span className="flex items-center gap-1"><ShieldCheck className="h-4 w-4 text-primary" /> منصة مغربية</span>
@@ -238,33 +250,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Audience Split */}
+      {/* For Affiliates */}
       <section className="py-16 lg:py-24">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">لمن هذه المنصة؟</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <div className="glass-card-hover p-8 space-y-5">
-              <div className="h-14 w-14 rounded-2xl gradient-teal flex items-center justify-center">
-                <TrendingUp className="h-7 w-7 text-primary-foreground" />
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">علاش CodConnect؟</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {[
+              { icon: Package, title: "منتجات جاهزة", desc: "نوفر لك منتجات مختارة بعناية جاهزة للتسويق" },
+              { icon: BadgeDollarSign, title: "عمولات مضمونة", desc: "اربح عمولة على كل طلب مؤكد — بدون مخاطرة" },
+              { icon: TrendingUp, title: "أدوات تتبع متقدمة", desc: "تابع أداءك، مبيعاتك، وأرباحك من لوحة تحكمك" },
+            ].map((item, i) => (
+              <div key={i} className="glass-card-hover p-8 space-y-4 text-center">
+                <div className="h-14 w-14 rounded-2xl gradient-teal flex items-center justify-center mx-auto">
+                  <item.icon className="h-7 w-7 text-primary-foreground" />
+                </div>
+                <h3 className="text-xl font-bold">{item.title}</h3>
+                <p className="text-muted-foreground text-sm">{item.desc}</p>
               </div>
-              <h3 className="text-2xl font-bold text-primary">للمسوقين</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex items-center gap-2"><BadgeDollarSign className="h-4 w-4 text-accent shrink-0" /> عمولات على كل طلب مؤكد</li>
-                <li className="flex items-center gap-2"><Package className="h-4 w-4 text-accent shrink-0" /> لا تحتاج مخزون</li>
-                <li className="flex items-center gap-2"><UserPlus className="h-4 w-4 text-accent shrink-0" /> روابط بيع خاصة بك</li>
-              </ul>
-            </div>
-            <div className="glass-card-hover p-8 space-y-5">
-              <div className="h-14 w-14 rounded-2xl bg-accent/20 flex items-center justify-center">
-                <Store className="h-7 w-7 text-accent" />
-              </div>
-              <h3 className="text-2xl font-bold text-accent">للتجار</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li className="flex items-center gap-2"><Users className="h-4 w-4 text-primary shrink-0" /> وصول إلى شبكة مسوقين</li>
-                <li className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-primary shrink-0" /> إدارة الطلبات عبر لوحة تحكم</li>
-                <li className="flex items-center gap-2"><Truck className="h-4 w-4 text-primary shrink-0" /> تكفل بالشحن و COD</li>
-              </ul>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -272,12 +275,12 @@ const Index = () => {
       {/* How it Works */}
       <section className="py-16 lg:py-24 bg-secondary/30">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">كيفاش كتخدم المنصة؟</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">كيفاش تبدأ؟</h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: "١", title: "إنشاء حساب", desc: "سجل مجانا كمسوق أو كتاجر", icon: UserPlus },
-              { step: "٢", title: "اختيار أو إضافة منتج", desc: "تصفح المنتجات أو أضف منتجاتك", icon: Package },
-              { step: "٣", title: "تأكيد الطلب وربح العمولة", desc: "عند تأكيد الطلب تربح عمولتك", icon: BadgeDollarSign },
+              { step: "١", title: "سجل حسابك", desc: "أنشئ حسابك كمسوق واختر الباقة المناسبة", icon: UserPlus },
+              { step: "٢", title: "اختر المنتجات", desc: "تصفح المنتجات الجاهزة وابدأ الترويج لها", icon: Package },
+              { step: "٣", title: "اربح العمولة", desc: "عند تأكيد الطلب، تربح عمولتك مباشرة", icon: BadgeDollarSign },
             ].map((item, i) => (
               <div key={i} className="text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl gradient-teal flex items-center justify-center mx-auto text-primary-foreground text-2xl font-bold">
@@ -294,35 +297,21 @@ const Index = () => {
       {/* Pricing Plans */}
       <PricingSection />
 
-      {/* Stats */}
-      <section className="py-16 lg:py-24 bg-secondary/30">
-        <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">أرقام المنصة</h2>
-          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {[
-              { label: "مسوقين", value: "+120", icon: Users },
-              { label: "طلبات", value: "+340", icon: ShoppingCart },
-              { label: "تجار", value: "+25", icon: Store },
-            ].map((s, i) => (
-              <div key={i} className="glass-card p-6 text-center space-y-2">
-                <s.icon className="h-8 w-8 text-primary mx-auto" />
-                <p className="text-3xl font-bold text-foreground">{s.value}</p>
-                <p className="text-sm text-muted-foreground">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-20 lg:py-28">
         <div className="container text-center space-y-8">
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 teal-glow">
-            <h2 className="text-3xl md:text-4xl font-bold">انضم الآن إلى CodConnect وابدأ اليوم</h2>
-            <p className="text-muted-foreground">سجل مجانا وابدأ في الربح من نظام الدفع عند الاستلام</p>
-            <Link to="/affiliate-signup" className="inline-block px-10 py-4 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity">
-              إنشاء حساب
-            </Link>
+            <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ تسويق وتربح؟</h2>
+            <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
+            <a
+              href="https://wa.me/212778133038"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl gradient-teal text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
+            >
+              <MessageCircle className="h-5 w-5" />
+              تواصل عبر واتساب
+            </a>
           </div>
         </div>
       </section>
