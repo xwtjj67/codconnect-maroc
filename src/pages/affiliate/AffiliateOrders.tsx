@@ -28,30 +28,30 @@ const AffiliateOrders = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchOrders = useCallback(async () => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase.from("orders").select("*").eq("affiliate_id", user.id).order("created_at", { ascending: false });
-      if (!data) { setLoading(false); return; }
+    setLoading(true);
+    const { data } = await supabase.from("orders").select("*").eq("affiliate_id", user.id).order("created_at", { ascending: false });
+    if (!data) { setLoading(false); return; }
 
-      const productIds = [...new Set(data.map(o => o.product_id))];
-      const { data: products } = await supabase.from("products").select("id, name").in("id", productIds.length ? productIds : ["00000000-0000-0000-0000-000000000000"]);
-      const productMap = Object.fromEntries((products || []).map(p => [p.id, p.name]));
+    const productIds = [...new Set(data.map(o => o.product_id))];
+    const { data: products } = await supabase.from("products").select("id, name").in("id", productIds.length ? productIds : ["00000000-0000-0000-0000-000000000000"]);
+    const productMap = Object.fromEntries((products || []).map(p => [p.id, p.name]));
 
-      setOrders(data.map(o => ({
-        id: o.id,
-        productName: productMap[o.product_id] || "—",
-        clientName: o.client_name,
-        city: o.city,
-        sellingPrice: Number(o.selling_price),
-        commissionAmount: Number(o.commission_amount),
-        status: o.status,
-        createdAt: new Date(o.created_at).toLocaleDateString("ar-MA"),
-      })));
-      setLoading(false);
-    };
-    fetch();
+    setOrders(data.map(o => ({
+      id: o.id,
+      productName: productMap[o.product_id] || "—",
+      clientName: o.client_name,
+      city: o.city,
+      sellingPrice: Number(o.selling_price),
+      commissionAmount: Number(o.commission_amount),
+      status: o.status,
+      createdAt: new Date(o.created_at).toLocaleDateString("ar-MA"),
+    })));
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const totalOrders = orders.length;
   const confirmedCommissions = orders.filter(o => ["confirmed", "delivered"].includes(o.status)).reduce((s, o) => s + o.commissionAmount, 0);
