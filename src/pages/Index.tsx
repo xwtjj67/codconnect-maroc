@@ -4,7 +4,7 @@ import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
-  Users, ShoppingCart, ClipboardCheck, Search, Wallet
+  Users, ShoppingCart, ClipboardCheck, Search, Wallet,
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
