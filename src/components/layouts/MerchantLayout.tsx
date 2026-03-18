@@ -27,7 +27,7 @@ const MerchantLayout = ({ children }: { children: ReactNode }) => {
         <div className="p-5 border-b border-sidebar-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={codconnectLogo} alt="CodConnect" className="h-8 w-auto" />
-            <span className="gold-badge text-[10px]">تاجر</span>
+            <span className="gold-badge text-[10px]">مورد</span>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground"><X className="h-5 w-5" /></button>
         </div>
