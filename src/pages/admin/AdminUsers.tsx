@@ -13,7 +13,9 @@ interface UserRow {
   status: string;
 }
 
-const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=";
+const openWhatsApp = (phone: string) => {
+  window.open(`https://wa.me/${phone.replace(/^0/, "212")}`, "_blank");
+};
 const statusLabels: Record<string, string> = { pending: "معلق", approved: "معتمد", active: "نشط", suspended: "موقوف" };
 const statusColors: Record<string, string> = { pending: "text-accent bg-accent/10", approved: "text-blue-400 bg-blue-400/10", active: "text-green-400 bg-green-400/10", suspended: "text-destructive bg-destructive/10" };
 const roleLabels: Record<string, string> = { affiliate: "مسوق", product_owner: "مورد", admin: "أدمن" };
