@@ -60,7 +60,10 @@ const AffiliateOrders = () => {
   return (
     <AffiliateLayout>
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-bold">طلباتي</h1>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h1 className="text-2xl font-bold">طلباتي</h1>
+          <CreateOrderDialog onOrderCreated={fetchOrders} />
+        </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="glass-card p-4 text-center">
