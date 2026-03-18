@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import {
   UserPlus, Package, BadgeDollarSign, ShieldCheck, Truck, Headphones,
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
-  GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle
+  GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
+  Users, ShoppingCart
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
