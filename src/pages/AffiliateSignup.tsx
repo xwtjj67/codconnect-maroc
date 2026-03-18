@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const AffiliateSignup = () => {
-  const [form, setForm] = useState({ name: "", phone: "", city: "", whatsapp: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", whatsapp: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { signupAffiliate } = useAuth();
@@ -14,8 +14,12 @@ const AffiliateSignup = () => {
     e.preventDefault();
     setError("");
 
-    if (!form.name.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim() || !form.city.trim() || !form.whatsapp.trim() || !form.password.trim()) {
       setError("يرجى ملء جميع الحقول");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("كلمتا السر غير متطابقتين");
       return;
     }
     if (form.password.length < 6) {
@@ -25,7 +29,7 @@ const AffiliateSignup = () => {
 
     setLoading(true);
     try {
-      await signupAffiliate(form);
+      await signupAffiliate({ name: form.name, email: form.email, phone: form.phone, city: form.city, whatsapp: form.whatsapp, password: form.password });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل إنشاء الحساب");
@@ -52,10 +56,12 @@ const AffiliateSignup = () => {
           <form className="space-y-4" onSubmit={handleSubmit}>
             {[
               { label: "الاسم الكامل", key: "name", type: "text", placeholder: "أدخل اسمك الكامل" },
-              { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX" },
+              { label: "البريد الإلكتروني", key: "email", type: "email", placeholder: "example@email.com", dir: "ltr" },
+              { label: "رقم الهاتف", key: "phone", type: "tel", placeholder: "06XXXXXXXX", dir: "ltr" },
               { label: "المدينة", key: "city", type: "text", placeholder: "مثال: الدار البيضاء" },
-              { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "رقم واتساب" },
+              { label: "WhatsApp", key: "whatsapp", type: "tel", placeholder: "رقم واتساب", dir: "ltr" },
               { label: "كلمة السر", key: "password", type: "password", placeholder: "••••••••" },
+              { label: "تأكيد كلمة السر", key: "confirmPassword", type: "password", placeholder: "••••••••" },
             ].map((f) => (
               <div key={f.key} className="space-y-2">
                 <label className="text-sm font-medium text-foreground">{f.label}</label>
@@ -64,6 +70,7 @@ const AffiliateSignup = () => {
                   placeholder={f.placeholder}
                   value={form[f.key as keyof typeof form]}
                   onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                  dir={(f as any).dir}
                   className="w-full h-11 px-4 rounded-lg bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
               </div>
