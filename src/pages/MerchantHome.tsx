@@ -192,10 +192,8 @@ const MerchantHome = () => {
                     ))}
                   </ul>
 
-                  <a
-                    href={getWhatsAppLink(plan.name)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => openWhatsApp(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${plan.name}.`)}
                     className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
                       plan.highlighted
                         ? "bg-accent text-accent-foreground shadow-[0_0_20px_rgba(202,158,60,0.3)] hover:opacity-90"
@@ -204,7 +202,7 @@ const MerchantHome = () => {
                   >
                     <MessageCircle className="h-4 w-4" />
                     {plan.cta}
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
