@@ -7,10 +7,8 @@ import {
   ShoppingCart, CheckCircle, Warehouse,
 } from "lucide-react";
 
-const WHATSAPP_BASE = "https://api.whatsapp.com/send?phone=212778133038&text=";
-const getWhatsAppLink = (planName: string) => {
-  const msg = encodeURIComponent(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${planName}.`);
-  return `${WHATSAPP_BASE}${msg}`;
+const openWhatsApp = (text: string) => {
+  window.open(`https://wa.me/212778133038?text=${encodeURIComponent(text)}`, "_blank");
 };
 
 const sellerPlans = [
