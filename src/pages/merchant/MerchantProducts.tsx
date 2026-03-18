@@ -1,16 +1,82 @@
 import MerchantLayout from "@/components/layouts/MerchantLayout";
-import { useState } from "react";
-import { Plus, Lock, Package } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Lock, Package, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SELLER_PLANS } from "@/types/auth";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const approvalLabels: Record<string, string> = { pending: "قيد الموافقة", approved: "مقبول", rejected: "مرفوض" };
+const approvalColors: Record<string, string> = {
+  pending: "text-accent bg-accent/10",
+  approved: "text-green-400 bg-green-400/10",
+  rejected: "text-destructive bg-destructive/10",
+};
+
+interface ProductRow {
+  id: string;
+  name: string;
+  costPrice: number;
+  sellingPrice: number | null;
+  stock: number;
+  approvalStatus: string;
+}
 
 const MerchantProducts = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const plan = user?.sellerPlan ? SELLER_PLANS[user.sellerPlan] : SELLER_PLANS.basic;
-  // Empty — products will come from API
-  const products: any[] = [];
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", costPrice: "", stock: "", description: "", category: "" });
+
   const canAdd = products.length < plan.maxProducts;
+
+  useEffect(() => {
+    if (!user) return;
+    const fetch = async () => {
+      const { data } = await supabase.from("products").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false });
+      setProducts((data || []).map(p => ({
+        id: p.id, name: p.name, costPrice: Number(p.cost_price),
+        sellingPrice: p.selling_price ? Number(p.selling_price) : null,
+        stock: p.stock, approvalStatus: p.approval_status,
+      })));
+      setLoading(false);
+    };
+    fetch();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !form.name.trim() || !form.costPrice) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("products").insert({
+      merchant_id: user.id,
+      name: form.name.trim(),
+      cost_price: Number(form.costPrice),
+      stock: Number(form.stock) || 0,
+      description: form.description.trim() || null,
+      category: form.category.trim() || null,
+    });
+    if (error) {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "تم بنجاح", description: "تم إضافة المنتج وهو قيد الموافقة" });
+      setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
+      setShowForm(false);
+      // Refresh
+      const { data } = await supabase.from("products").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false });
+      setProducts((data || []).map(p => ({
+        id: p.id, name: p.name, costPrice: Number(p.cost_price),
+        sellingPrice: p.selling_price ? Number(p.selling_price) : null,
+        stock: p.stock, approvalStatus: p.approval_status,
+      })));
+    }
+    setSubmitting(false);
+  };
 
   return (
     <MerchantLayout>
@@ -26,6 +92,7 @@ const MerchantProducts = () => {
             <TooltipTrigger asChild>
               <button
                 disabled={!canAdd}
+                onClick={() => canAdd && setShowForm(!showForm)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity ${
                   canAdd ? "gradient-teal text-primary-foreground hover:opacity-90" : "bg-muted text-muted-foreground cursor-not-allowed"
                 }`}
@@ -40,13 +107,95 @@ const MerchantProducts = () => {
           </Tooltip>
         </div>
 
-        <div className="glass-card p-12 text-center space-y-3">
-          <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto">
-            <Package className="h-8 w-8 text-muted-foreground" />
+        {showForm && (
+          <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
+            <h2 className="font-semibold">إضافة منتج جديد</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium">اسم المنتج *</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
+                  className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">سعر التكلفة (DH) *</label>
+                <input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} required min="0"
+                  className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">المخزون</label>
+                <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} min="0"
+                  className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">الفئة</label>
+                <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">الوصف</label>
+              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3}
+                className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" />
+            </div>
+            <p className="text-xs text-muted-foreground">* سعر البيع والعمولة يتم تحديدهم من طرف الإدارة بعد الموافقة</p>
+            <div className="flex gap-3">
+              <button type="submit" disabled={submitting}
+                className="px-6 py-2.5 rounded-lg gradient-teal text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50">
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                إضافة المنتج
+              </button>
+              <button type="button" onClick={() => setShowForm(false)}
+                className="px-6 py-2.5 rounded-lg bg-secondary/50 text-muted-foreground text-sm hover:bg-secondary transition-colors">
+                إلغاء
+              </button>
+            </div>
+          </form>
+        )}
+
+        {loading ? (
+          <div className="glass-card p-12 text-center">
+            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
-          <p className="text-lg font-medium text-muted-foreground">لا توجد منتجات بعد</p>
-          <p className="text-sm text-muted-foreground/70">أضف منتجك الأول وحدد سعر التكلفة</p>
-        </div>
+        ) : products.length === 0 ? (
+          <div className="glass-card p-12 text-center space-y-3">
+            <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-muted-foreground">لا توجد منتجات بعد</p>
+            <p className="text-sm text-muted-foreground/70">أضف منتجك الأول وحدد سعر التكلفة</p>
+          </div>
+        ) : (
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">المخزون</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map(p => (
+                    <tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors">
+                      <td className="p-4 font-medium">{p.name}</td>
+                      <td className="p-4 text-muted-foreground">{p.costPrice} DH</td>
+                      <td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "يحدد لاحقاً"}</td>
+                      <td className="p-4 text-muted-foreground">{p.stock}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${approvalColors[p.approvalStatus]}`}>
+                          {approvalLabels[p.approvalStatus]}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </MerchantLayout>
   );
