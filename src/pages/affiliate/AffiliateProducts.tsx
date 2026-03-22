@@ -1,15 +1,19 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { useState, useEffect } from "react";
-import { Search, Package } from "lucide-react";
+import { Search, Package, PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import LockedFeature from "@/components/shared/LockedFeature";
+import ImageGallery from "@/components/shared/ImageGallery";
+import SecureVideoPlayer from "@/components/shared/SecureVideoPlayer";
 
 interface ProductItem {
   id: string;
   name: string;
   description: string | null;
   image: string | null;
+  images: string[];
+  videoUrl: string | null;
   sellingPrice: number | null;
   commission: number | null;
   category: string | null;
@@ -30,6 +34,7 @@ const AffiliateProducts = () => {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
 
   const userPlan = user?.plan || "standard";
   const allowedVisibility = visibilityAccess[userPlan] || ["standard"];
@@ -48,6 +53,8 @@ const AffiliateProducts = () => {
           name: p.name,
           description: p.description,
           image: p.image,
+          images: (p as any).images || (p.image ? [p.image] : []),
+          videoUrl: (p as any).video_url || null,
           sellingPrice: p.selling_price ? Number(p.selling_price) : null,
           commission: p.commission ? Number(p.commission) : null,
           category: p.category,
@@ -96,6 +103,44 @@ const AffiliateProducts = () => {
           ))}
         </div>
 
+        {/* Product Detail Modal */}
+        {selectedProduct && (
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
+            <div className="glass-card max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-lg">{selectedProduct.name}</h2>
+                <button onClick={() => setSelectedProduct(null)} className="text-muted-foreground hover:text-foreground">✕</button>
+              </div>
+
+              {selectedProduct.images.length > 0 && (
+                <ImageGallery images={selectedProduct.images} alt={selectedProduct.name} />
+              )}
+
+              {selectedProduct.videoUrl && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" /> فيديو المنتج
+                  </h3>
+                  <SecureVideoPlayer url={selectedProduct.videoUrl} title={selectedProduct.name} />
+                </div>
+              )}
+
+              {selectedProduct.description && (
+                <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+              )}
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold">
+                  {selectedProduct.sellingPrice ? `${selectedProduct.sellingPrice} DH` : "—"}
+                </span>
+                {selectedProduct.commission && (
+                  <span className="gold-badge">عمولة: {selectedProduct.commission} DH</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -123,19 +168,27 @@ const AffiliateProducts = () => {
               const isLocked = !allowedVisibility.includes(product.visibility);
               return (
                 <LockedFeature key={product.id} isLocked={isLocked} message="قم بالترقية للوصول لهذا المنتج">
-                  <div className="glass-card-hover overflow-hidden">
-                    <div className="aspect-square bg-secondary/50 overflow-hidden">
+                  <div
+                    className="glass-card-hover overflow-hidden cursor-pointer"
+                    onClick={() => !isLocked && setSelectedProduct(product)}
+                  >
+                    <div className="aspect-square bg-secondary/50 overflow-hidden relative">
                       {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                        />
+                        <img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Package className="h-12 w-12 text-muted-foreground/30" />
                         </div>
+                      )}
+                      {product.videoUrl && (
+                        <div className="absolute top-2 left-2 h-7 w-7 rounded-full bg-background/80 flex items-center justify-center">
+                          <PlayCircle className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                      {product.images.length > 1 && (
+                        <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-background/80 text-foreground">
+                          {product.images.length} صور
+                        </span>
                       )}
                     </div>
                     <div className="p-4 space-y-2">

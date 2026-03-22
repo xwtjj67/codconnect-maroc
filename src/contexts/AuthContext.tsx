@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -14,6 +14,7 @@ export interface AppUser {
   phone: string;
   city: string;
   whatsapp: string;
+  username?: string;
   storeName?: string;
   role: UserRole;
   status: UserStatus;
@@ -27,7 +28,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isPending: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AppUser>;
   signupAffiliate: (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
   signupMerchant: (data: { name: string; email: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -48,56 +49,31 @@ export const useAuth = () => {
 const planProductLimits: Record<PlanType, number> = { standard: 3, premium: 5, vip: -1 };
 const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
-async function fetchAppUser(userId: string): Promise<AppUser | null> {
+async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    // Fetch profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    const [profileRes, roleRes, statusRes, subRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).single(),
+      supabase.from("user_roles").select("role").eq("user_id", userId).single(),
+      supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
+      supabase.from("subscriptions").select("plan, seller_plan, is_active").eq("user_id", userId).eq("is_active", true).order("created_at", { ascending: false }).limit(1).single(),
+    ]);
 
+    const profile = profileRes.data;
     if (!profile) return null;
-
-    // Fetch role
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-
-    // Fetch status
-    const { data: statusData } = await supabase
-      .from("user_statuses")
-      .select("status")
-      .eq("user_id", userId)
-      .single();
-
-    // Fetch subscription
-    const { data: subData } = await supabase
-      .from("subscriptions")
-      .select("plan, seller_plan, is_active")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    // Get email from auth
-    const { data: { user: authUser } } = await supabase.auth.getUser();
 
     return {
       id: userId,
-      email: authUser?.email || "",
+      email: email || "",
       name: profile.name,
       phone: profile.phone,
       city: profile.city || "",
       whatsapp: profile.whatsapp || "",
+      username: (profile as any).username || undefined,
       storeName: profile.store_name || undefined,
-      role: (roleData?.role as UserRole) || "affiliate",
-      status: (statusData?.status as UserStatus) || "pending",
-      plan: (subData?.plan as PlanType) || undefined,
-      sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
+      role: (roleRes.data?.role as UserRole) || "affiliate",
+      status: (statusRes.data?.status as UserStatus) || "pending",
+      plan: (subRes.data?.plan as PlanType) || undefined,
+      sellerPlan: (subRes.data?.seller_plan as SellerPlanType) || undefined,
     };
   } catch {
     return null;
@@ -108,13 +84,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const fetchingRef = useRef(false);
+
+  const loadUser = async (authUser: SupabaseUser) => {
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    try {
+      setSupabaseUser(authUser);
+      const appUser = await fetchAppUser(authUser.id, authUser.email);
+      setUser(appUser);
+    } finally {
+      fetchingRef.current = false;
+      setIsLoading(false);
+    }
+  };
 
   const refreshUser = async () => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (authUser) {
-      setSupabaseUser(authUser);
-      const appUser = await fetchAppUser(authUser.id);
-      setUser(appUser);
+      await loadUser(authUser);
     } else {
       setSupabaseUser(null);
       setUser(null);
@@ -122,17 +110,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
         if (session?.user) {
-          setSupabaseUser(session.user);
-          // Use setTimeout to avoid Supabase deadlock
-          setTimeout(async () => {
-            const appUser = await fetchAppUser(session.user.id);
-            setUser(appUser);
-            setIsLoading(false);
-          }, 0);
+          await loadUser(session.user);
         } else {
           setSupabaseUser(null);
           setUser(null);
@@ -141,25 +125,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       if (session?.user) {
-        setSupabaseUser(session.user);
-        fetchAppUser(session.user.id).then(appUser => {
-          setUser(appUser);
-          setIsLoading(false);
-        });
+        loadUser(session.user);
       } else {
         setIsLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const login = async (email: string, password: string): Promise<AppUser> => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
+    
+    // Immediately fetch user data after login
+    const appUser = await fetchAppUser(data.user.id, data.user.email);
+    if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
+    
+    setSupabaseUser(data.user);
+    setUser(appUser);
+    return appUser;
   };
 
   const signupAffiliate = async (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => {
@@ -168,11 +159,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password: data.password,
       options: {
         data: {
-          name: data.name,
-          phone: data.phone,
-          city: data.city,
-          whatsapp: data.whatsapp,
-          role: "affiliate",
+          name: data.name, phone: data.phone, city: data.city,
+          whatsapp: data.whatsapp, role: "affiliate",
         },
       },
     });
@@ -185,12 +173,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password: data.password,
       options: {
         data: {
-          name: data.name,
-          phone: data.phone,
-          city: data.city,
-          whatsapp: data.whatsapp,
-          store_name: data.storeName,
-          role: "product_owner",
+          name: data.name, phone: data.phone, city: data.city,
+          whatsapp: data.whatsapp, store_name: data.storeName, role: "product_owner",
         },
       },
     });
@@ -206,7 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hasRole = (role: UserRole) => user?.role === role;
   const hasPlan = (plan: PlanType) => user?.plan === plan;
   const isPending = !!user && user.status !== "active";
-  
+
   const canAddProduct = (currentCount: number) => {
     if (!user) return false;
     if (user.role === "affiliate" && user.plan) {

@@ -241,13 +241,16 @@ export type Database = {
           description: string | null
           id: string
           image: string | null
+          images: string[] | null
           is_active: boolean
           merchant_id: string
           name: string
           orders_count: number
           selling_price: number | null
           stock: number
+          thumbnail: string | null
           updated_at: string
+          video_url: string | null
           views: number
           visibility: Database["public"]["Enums"]["visibility_level"]
         }
@@ -261,13 +264,16 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string | null
+          images?: string[] | null
           is_active?: boolean
           merchant_id: string
           name: string
           orders_count?: number
           selling_price?: number | null
           stock?: number
+          thumbnail?: string | null
           updated_at?: string
+          video_url?: string | null
           views?: number
           visibility?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -281,13 +287,16 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string | null
+          images?: string[] | null
           is_active?: boolean
           merchant_id?: string
           name?: string
           orders_count?: number
           selling_price?: number | null
           stock?: number
+          thumbnail?: string | null
           updated_at?: string
+          video_url?: string | null
           views?: number
           visibility?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -302,6 +311,7 @@ export type Database = {
           phone: string
           store_name: string | null
           updated_at: string
+          username: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -312,6 +322,7 @@ export type Database = {
           phone: string
           store_name?: string | null
           updated_at?: string
+          username?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -322,7 +333,29 @@ export type Database = {
           phone?: string
           store_name?: string | null
           updated_at?: string
+          username?: string | null
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
         }
         Relationships: []
       }
@@ -386,6 +419,54 @@ export type Database = {
           seller_plan?: Database["public"]["Enums"]["seller_plan_type"] | null
           started_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      training_content: {
+        Row: {
+          access_level: string
+          category: string
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          read_time: string | null
+          sort_order: number
+          title: string
+          type: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          access_level?: string
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          read_time?: string | null
+          sort_order?: number
+          title: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          access_level?: string
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          read_time?: string | null
+          sort_order?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }

@@ -1,12 +1,12 @@
 import MerchantLayout from "@/components/layouts/MerchantLayout";
 import { useState, useEffect } from "react";
-import { Plus, Lock, Package, Loader2 } from "lucide-react";
+import { Plus, Lock, Package, Loader2, Video } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SELLER_PLANS } from "@/types/auth";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ImageUpload from "@/components/shared/ImageUpload";
+import MultiImageUpload from "@/components/shared/MultiImageUpload";
 
 const approvalLabels: Record<string, string> = { pending: "قيد الموافقة", approved: "مقبول", rejected: "مرفوض" };
 const approvalColors: Record<string, string> = {
@@ -34,8 +34,8 @@ const MerchantProducts = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: "", costPrice: "", stock: "", description: "", category: "" });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const canAdd = products.length < plan.maxProducts;
 
@@ -57,41 +57,48 @@ const MerchantProducts = () => {
     fetch();
   }, [user]);
 
-  const handleFileSelect = (file: File) => {
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
-  };
-
-  const clearImage = () => {
-    setImageFile(null);
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     if (!user) return null;
     const ext = file.name.split(".").pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    const path = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
     if (error) return null;
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     return data.publicUrl;
   };
 
+  const clearForm = () => {
+    setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
+    images.forEach(img => URL.revokeObjectURL(img.preview));
+    setImages([]);
+    setVideoFile(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !form.name.trim() || !form.costPrice || !imageFile) {
-      if (!imageFile) toast({ title: "خطأ", description: "يرجى إضافة صورة المنتج", variant: "destructive" });
+    if (!user || !form.name.trim() || !form.costPrice || images.length === 0) {
+      if (images.length === 0) toast({ title: "خطأ", description: "يرجى إضافة صورة واحدة على الأقل", variant: "destructive" });
       return;
     }
     setSubmitting(true);
 
-    const imageUrl = await uploadImage(imageFile);
-    if (!imageUrl) {
-      toast({ title: "خطأ", description: "فشل رفع الصورة", variant: "destructive" });
+    // Upload all images
+    const imageUrls: string[] = [];
+    for (const img of images) {
+      const url = await uploadFile(img.file, "images");
+      if (url) imageUrls.push(url);
+    }
+
+    if (imageUrls.length === 0) {
+      toast({ title: "خطأ", description: "فشل رفع الصور", variant: "destructive" });
       setSubmitting(false);
       return;
+    }
+
+    // Upload video if exists
+    let videoUrl: string | null = null;
+    if (videoFile) {
+      videoUrl = await uploadFile(videoFile, "videos");
     }
 
     const { error } = await supabase.from("products").insert({
@@ -101,14 +108,17 @@ const MerchantProducts = () => {
       stock: Number(form.stock) || 0,
       description: form.description.trim() || null,
       category: form.category.trim() || null,
-      image: imageUrl,
+      image: imageUrls[0],
+      images: imageUrls,
+      video_url: videoUrl,
+      thumbnail: imageUrls[0],
     });
+
     if (error) {
       toast({ title: "خطأ", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "تم بنجاح", description: "تم إضافة المنتج وهو قيد الموافقة" });
-      setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
-      clearImage();
+      clearForm();
       setShowForm(false);
       const { data } = await supabase.from("products").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false });
       setProducts(mapProducts(data || []));
@@ -148,12 +158,46 @@ const MerchantProducts = () => {
         {showForm && (
           <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
             <h2 className="font-semibold">إضافة منتج جديد</h2>
-            <ImageUpload
-              onFileSelect={handleFileSelect}
-              preview={imagePreview}
-              onClear={clearImage}
+            
+            <MultiImageUpload
+              images={images}
+              onChange={setImages}
+              maxImages={10}
               disabled={submitting}
             />
+
+            {/* Video upload */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">فيديو المنتج (اختياري)</label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById("video-input")?.click()}
+                  disabled={submitting}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+                >
+                  <Video className="h-4 w-4" />
+                  {videoFile ? videoFile.name : "اختر فيديو"}
+                </button>
+                {videoFile && (
+                  <button type="button" onClick={() => setVideoFile(null)} className="text-xs text-destructive hover:underline">
+                    حذف
+                  </button>
+                )}
+              </div>
+              <input
+                id="video-input"
+                type="file"
+                accept="video/*"
+                className="hidden"
+                disabled={submitting}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) setVideoFile(e.target.files[0]);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">اسم المنتج *</label>
@@ -188,7 +232,7 @@ const MerchantProducts = () => {
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 إضافة المنتج
               </button>
-              <button type="button" onClick={() => { setShowForm(false); clearImage(); }}
+              <button type="button" onClick={() => { setShowForm(false); clearForm(); }}
                 className="px-6 py-2.5 rounded-lg bg-secondary/50 text-muted-foreground text-sm hover:bg-secondary transition-colors">
                 إلغاء
               </button>
