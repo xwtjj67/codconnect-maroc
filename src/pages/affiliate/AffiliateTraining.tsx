@@ -212,16 +212,12 @@ const AffiliateTraining = () => {
                         )}
                       </div>
                     </div>
-                    {article.content ? (
-                      <button
-                        onClick={() => setSelectedArticle(article)}
-                        className="text-xs text-primary font-medium hover:underline"
-                      >
-                        اقرأ المقال ←
-                      </button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/50">قريباً</span>
-                    )}
+                    <button
+                      onClick={() => !isLocked && setSelectedArticle(article)}
+                      className="text-xs text-primary font-medium hover:underline"
+                    >
+                      اقرأ المقال ←
+                    </button>
                   </div>
                 </LockedFeature>
               );
