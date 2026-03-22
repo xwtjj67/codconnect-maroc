@@ -15,7 +15,7 @@ const sellerPlans = [
   {
     name: "Basic",
     subtitle: "صاحب متجر",
-    price: "300",
+    price: "350",
     priceLabel: "DH/شهر",
     badge: null,
     highlighted: false,
