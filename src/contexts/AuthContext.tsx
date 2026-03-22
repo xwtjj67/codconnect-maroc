@@ -51,15 +51,24 @@ const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
 async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    const [profileRes, roleRes, statusRes, subRes] = await Promise.all([
+    const [profileRes, roleRes, statusRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId).single(),
       supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
-      supabase.from("subscriptions").select("plan, seller_plan, is_active").eq("user_id", userId).eq("is_active", true).order("created_at", { ascending: false }).limit(1).single(),
     ]);
 
     const profile = profileRes.data;
     if (!profile) return null;
+
+    // Subscription query separately - may not exist for all users
+    const { data: subData } = await supabase
+      .from("subscriptions")
+      .select("plan, seller_plan, is_active")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     return {
       id: userId,
@@ -72,10 +81,11 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       storeName: profile.store_name || undefined,
       role: (roleRes.data?.role as UserRole) || "affiliate",
       status: (statusRes.data?.status as UserStatus) || "pending",
-      plan: (subRes.data?.plan as PlanType) || undefined,
-      sellerPlan: (subRes.data?.seller_plan as SellerPlanType) || undefined,
+      plan: (subData?.plan as PlanType) || undefined,
+      sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
     };
-  } catch {
+  } catch (err) {
+    console.error("fetchAppUser error:", err);
     return null;
   }
 }
