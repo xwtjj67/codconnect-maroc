@@ -326,6 +326,36 @@ export type Database = {
         }
         Relationships: []
       }
+      service_requests: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          role: string
+          service_name: string
+          status: Database["public"]["Enums"]["service_request_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          role: string
+          service_name: string
+          status?: Database["public"]["Enums"]["service_request_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          role?: string
+          service_name?: string
+          status?: Database["public"]["Enums"]["service_request_status"]
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -423,6 +453,7 @@ export type Database = {
         | "cancelled"
       plan_type: "standard" | "premium" | "vip"
       seller_plan_type: "basic" | "pro"
+      service_request_status: "pending" | "contacted" | "closed"
       user_status: "pending" | "approved" | "active" | "suspended"
       visibility_level: "standard" | "premium" | "vip"
     }
@@ -563,6 +594,7 @@ export const Constants = {
       ],
       plan_type: ["standard", "premium", "vip"],
       seller_plan_type: ["basic", "pro"],
+      service_request_status: ["pending", "contacted", "closed"],
       user_status: ["pending", "approved", "active", "suspended"],
       visibility_level: ["standard", "premium", "vip"],
     },
