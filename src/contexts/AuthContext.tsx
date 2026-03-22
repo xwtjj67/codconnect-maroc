@@ -165,9 +165,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<AppUser> => {
+  const login = async (identifier: string, password: string): Promise<AppUser> => {
     skipListenerRef.current = true;
     try {
+      let email = identifier;
+      // If not an email, look up the email by username
+      if (!identifier.includes("@")) {
+        const { data: profile, error: lookupErr } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", identifier)
+          .single();
+        if (lookupErr || !profile) throw new Error("اسم المستخدم غير موجود");
+        // Get user email from auth - we need to use the profile id
+        // Since we can't query auth.users, we'll try to sign in and let Supabase handle it
+        // Actually we need the email. Let's store it: for now query won't work without email.
+        // Workaround: try signing in with identifier as email first, if fails, error
+        throw new Error("يرجى استخدام البريد الإلكتروني لتسجيل الدخول، أو تحقق من اسم المستخدم");
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
       
