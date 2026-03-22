@@ -199,14 +199,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signupAffiliate = async (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => {
+  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           name: data.name, phone: data.phone, city: data.city,
-          whatsapp: data.whatsapp, role: "affiliate",
+          username: data.username, role: "affiliate",
         },
       },
     });
