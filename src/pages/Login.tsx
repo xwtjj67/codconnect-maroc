@@ -13,6 +13,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate requests
     setError("");
 
     if (!email.trim() || !password.trim()) {
@@ -22,8 +23,18 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await login(email, password);
-      navigate("/dashboard", { replace: true });
+      const appUser = await login(email, password);
+      
+      // Instant redirect based on role
+      if (appUser.status !== "active") {
+        navigate("/pending-approval", { replace: true });
+      } else if (appUser.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (appUser.role === "product_owner") {
+        navigate("/merchant/dashboard", { replace: true });
+      } else {
+        navigate("/affiliate/dashboard", { replace: true });
+      }
     } catch (err: any) {
       setError(err.message || "فشل تسجيل الدخول");
     } finally {
@@ -71,9 +82,14 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3 rounded-xl gradient-teal text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {loading ? "جاري الدخول..." : "تسجيل الدخول"}
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  جاري الدخول...
+                </>
+              ) : "تسجيل الدخول"}
             </button>
           </form>
 
