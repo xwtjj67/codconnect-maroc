@@ -12,6 +12,8 @@ import AffiliateSignup from "./pages/AffiliateSignup";
 import MerchantSignup from "./pages/MerchantSignup";
 import MerchantHome from "./pages/MerchantHome";
 import PendingApproval from "./pages/PendingApproval";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
 import Services from "./pages/Services";
