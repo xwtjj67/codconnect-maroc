@@ -1,8 +1,9 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Trash2, BookOpen, PlayCircle, Edit } from "lucide-react";
+import { Plus, Loader2, Trash2, BookOpen, PlayCircle, Edit, Eye, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { extractDriveFileId } from "@/components/shared/GoogleDrivePlayer";
 
 interface TrainingItem {
   id: string;
@@ -16,10 +17,18 @@ interface TrainingItem {
   readTime: string | null;
   isPublished: boolean;
   sortOrder: number;
+  thumbnail: string | null;
+  viewsCount: number;
 }
 
 const categories = ["أساسيات", "استراتيجيات", "اختيار المنتجات", "تسويق", "إدارة العملاء", "تحليلات"];
 const accessLevels = ["standard", "premium", "vip"];
+const accessLabels: Record<string, string> = { standard: "Standard", premium: "Premium", vip: "VIP" };
+const accessColors: Record<string, string> = {
+  standard: "bg-secondary/50 text-muted-foreground",
+  premium: "bg-primary/10 text-primary",
+  vip: "bg-accent/10 text-accent",
+};
 
 const AdminTraining = () => {
   const { toast } = useToast();
@@ -31,7 +40,7 @@ const AdminTraining = () => {
   const [form, setForm] = useState({
     title: "", description: "", content: "", type: "article",
     category: "أساسيات", accessLevel: "standard", videoUrl: "", readTime: "",
-    isPublished: true, sortOrder: 0,
+    isPublished: true, sortOrder: 0, thumbnail: "",
   });
 
   const fetchItems = async () => {
@@ -45,7 +54,7 @@ const AdminTraining = () => {
         id: d.id, title: d.title, description: d.description, content: d.content,
         type: d.type, category: d.category, accessLevel: d.access_level,
         videoUrl: d.video_url, readTime: d.read_time, isPublished: d.is_published,
-        sortOrder: d.sort_order,
+        sortOrder: d.sort_order, thumbnail: d.thumbnail, viewsCount: d.views_count || 0,
       }))
     );
     setLoading(false);
@@ -54,7 +63,7 @@ const AdminTraining = () => {
   useEffect(() => { fetchItems(); }, []);
 
   const resetForm = () => {
-    setForm({ title: "", description: "", content: "", type: "article", category: "أساسيات", accessLevel: "standard", videoUrl: "", readTime: "", isPublished: true, sortOrder: 0 });
+    setForm({ title: "", description: "", content: "", type: "article", category: "أساسيات", accessLevel: "standard", videoUrl: "", readTime: "", isPublished: true, sortOrder: 0, thumbnail: "" });
     setEditingId(null);
     setShowForm(false);
   };
@@ -64,7 +73,7 @@ const AdminTraining = () => {
       title: item.title, description: item.description || "", content: item.content || "",
       type: item.type, category: item.category, accessLevel: item.accessLevel,
       videoUrl: item.videoUrl || "", readTime: item.readTime || "",
-      isPublished: item.isPublished, sortOrder: item.sortOrder,
+      isPublished: item.isPublished, sortOrder: item.sortOrder, thumbnail: item.thumbnail || "",
     });
     setEditingId(item.id);
     setShowForm(true);
@@ -75,6 +84,15 @@ const AdminTraining = () => {
     if (!form.title.trim()) return;
     setSubmitting(true);
 
+    // Auto-convert Google Drive link to file ID
+    let videoUrl = form.videoUrl.trim() || null;
+    if (videoUrl && form.type === "video") {
+      const fileId = extractDriveFileId(videoUrl);
+      if (fileId) {
+        videoUrl = fileId; // Store only the file ID
+      }
+    }
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim() || null,
@@ -82,10 +100,11 @@ const AdminTraining = () => {
       type: form.type,
       category: form.category,
       access_level: form.accessLevel,
-      video_url: form.videoUrl.trim() || null,
+      video_url: videoUrl,
       read_time: form.readTime.trim() || null,
       is_published: form.isPublished,
       sort_order: form.sortOrder,
+      thumbnail: form.thumbnail.trim() || null,
     };
 
     const { error } = editingId
@@ -108,13 +127,6 @@ const AdminTraining = () => {
       toast({ title: "تم الحذف" });
       fetchItems();
     }
-  };
-
-  const accessLabels: Record<string, string> = { standard: "Standard", premium: "Premium", vip: "VIP" };
-  const accessColors: Record<string, string> = {
-    standard: "bg-secondary/50 text-muted-foreground",
-    premium: "bg-primary/10 text-primary",
-    vip: "bg-accent/10 text-accent",
   };
 
   return (
@@ -144,7 +156,7 @@ const AdminTraining = () => {
                 <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                   className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
                   <option value="article">مقال</option>
-                  <option value="video">فيديو</option>
+                  <option value="video">فيديو (Google Drive)</option>
                 </select>
               </div>
               <div className="space-y-1">
@@ -172,13 +184,26 @@ const AdminTraining = () => {
                   className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" />
               </div>
             </div>
+
             {form.type === "video" && (
               <div className="space-y-1">
-                <label className="text-sm font-medium">رابط الفيديو</label>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-primary" /> رابط Google Drive
+                </label>
                 <input value={form.videoUrl} onChange={e => setForm(f => ({ ...f, videoUrl: e.target.value }))} dir="ltr"
+                  placeholder="https://drive.google.com/file/d/FILE_ID/view"
                   className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <p className="text-xs text-muted-foreground">الصق رابط Google Drive وسيتم تحويله تلقائياً</p>
               </div>
             )}
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">رابط الصورة المصغرة (اختياري)</label>
+              <input value={form.thumbnail} onChange={e => setForm(f => ({ ...f, thumbnail: e.target.value }))} dir="ltr"
+                placeholder="https://example.com/thumbnail.jpg"
+                className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+            </div>
+
             <div className="space-y-1">
               <label className="text-sm font-medium">الوصف القصير</label>
               <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -224,6 +249,7 @@ const AdminTraining = () => {
                     <th className="text-right p-4 font-medium text-muted-foreground">النوع</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الفئة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المستوى</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">المشاهدات</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">إجراءات</th>
                   </tr>
@@ -242,6 +268,11 @@ const AdminTraining = () => {
                       <td className="p-4">
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${accessColors[item.accessLevel]}`}>
                           {accessLabels[item.accessLevel]}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Eye className="h-3.5 w-3.5" /> {item.viewsCount}
                         </span>
                       </td>
                       <td className="p-4">
