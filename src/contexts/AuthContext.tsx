@@ -109,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
+        if (skipListenerRef.current) return; // Skip when login handles it directly
         if (session?.user) {
           await loadUser(session.user);
         } else {
