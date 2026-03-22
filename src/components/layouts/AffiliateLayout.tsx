@@ -11,6 +11,7 @@ const sidebarItems = [
   { title: "الطلبات", url: "/affiliate/orders", icon: ShoppingCart },
   { title: "الإحالات", url: "/affiliate/referrals", icon: Users },
   { title: "التدريب", url: "/affiliate/training", icon: GraduationCap },
+  { title: "الخدمات", url: "/services", icon: Sparkles },
 ];
 
 const AffiliateLayout = ({ children }: { children: ReactNode }) => {

@@ -10,6 +10,7 @@ const sidebarItems = [
   { title: "المنتجات", url: "/merchant/products", icon: Package },
   { title: "الطلبات", url: "/merchant/orders", icon: ShoppingCart },
   { title: "التحليلات", url: "/merchant/analytics", icon: BarChart3 },
+  { title: "الخدمات", url: "/services", icon: Sparkles },
 ];
 
 const MerchantLayout = ({ children }: { children: ReactNode }) => {
