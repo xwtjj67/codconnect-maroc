@@ -31,6 +31,13 @@ const AffiliateSignup = () => {
     setLoading(true);
     try {
       await signupAffiliate({ name: form.name, email: form.email, phone: form.phone, city: form.city, whatsapp: form.whatsapp, password: form.password });
+      await distributeToSheet({
+        name: form.name,
+        phone: form.phone,
+        role: "affiliate",
+        plan: "Standard",
+        date: new Date().toISOString(),
+      });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل إنشاء الحساب");

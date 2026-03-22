@@ -34,6 +34,13 @@ const MerchantSignup = () => {
         name: form.name, email: form.email, storeName: form.storeName,
         phone: form.phone, city: form.city, whatsapp: form.whatsapp, password: form.password,
       });
+      await distributeToSheet({
+        name: form.name,
+        phone: form.phone,
+        role: "product_owner",
+        plan: "Basic",
+        date: new Date().toISOString(),
+      });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       setError(err.message || "فشل إنشاء الحساب");
