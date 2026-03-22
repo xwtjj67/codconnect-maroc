@@ -1,5 +1,5 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
-import { PlayCircle, BookOpen, FileDown, ShoppingCart, Lock } from "lucide-react";
+import { PlayCircle, BookOpen, FileDown, ShoppingCart, Lock, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +42,7 @@ const AffiliateTraining = () => {
   const [dbContent, setDbContent] = useState<TrainingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<TrainingItem | null>(null);
 
   const userPlan = user?.plan || "standard";
@@ -86,9 +87,12 @@ const AffiliateTraining = () => {
         readTime: a.readTime,
       }));
 
-  const filtered = allContent.filter(
-    c => activeCategory === "الكل" || c.category === activeCategory
-  );
+  const filtered = allContent.filter(c => {
+    const matchCategory = activeCategory === "الكل" || c.category === activeCategory;
+    const q = searchQuery.trim().toLowerCase();
+    const matchSearch = !q || c.title.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q);
+    return matchCategory && matchSearch;
+  });
 
   const articles = filtered.filter(c => c.type === "article");
   const videos = filtered.filter(c => c.type === "video");
@@ -99,6 +103,17 @@ const AffiliateTraining = () => {
         <div>
           <h1 className="text-2xl font-bold">مركز التدريب</h1>
           <p className="text-sm text-muted-foreground mt-1">تعلم واكتسب مهارات جديدة لزيادة أرباحك</p>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="ابحث في المقالات والدورات..."
+            className="w-full h-10 pr-10 pl-4 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
+          />
         </div>
 
         {/* Category filters */}
