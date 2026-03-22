@@ -51,7 +51,6 @@ const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
 async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    console.log("[fetchAppUser] Starting for userId:", userId);
     
     // Add timeout to prevent hanging
     const timeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
@@ -66,15 +65,9 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
     ]), 10000);
 
-    console.log("[fetchAppUser] Profile:", profileRes.data, profileRes.error?.message);
-    console.log("[fetchAppUser] Role:", roleRes.data, roleRes.error?.message);
-    console.log("[fetchAppUser] Status:", statusRes.data, statusRes.error?.message);
 
     const profile = profileRes.data;
-    if (!profile) {
-      console.error("[fetchAppUser] No profile found");
-      return null;
-    }
+    if (!profile) return null;
 
     // Subscription query separately - may not exist for all users
     const subQuery = supabase
@@ -88,7 +81,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
     
     const { data: subData } = await timeout(Promise.resolve(subQuery), 10000);
 
-    console.log("[fetchAppUser] Subscription:", subData);
+    
 
     return {
       id: userId,
@@ -104,8 +97,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       plan: (subData?.plan as PlanType) || undefined,
       sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
     };
-  } catch (err) {
-    console.error("[fetchAppUser] error:", err);
+  } catch {
     return null;
   }
 }

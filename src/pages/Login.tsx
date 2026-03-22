@@ -1,8 +1,11 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 1 minute
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
@@ -12,6 +15,8 @@ const Login = () => {
   const [showPw, setShowPw] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const attemptsRef = useRef(0);
+  const lockoutUntilRef = useRef(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,9 +28,17 @@ const Login = () => {
       return;
     }
 
+    // Rate limiting
+    if (Date.now() < lockoutUntilRef.current) {
+      const remaining = Math.ceil((lockoutUntilRef.current - Date.now()) / 1000);
+      setError(`تم تجاوز عدد المحاولات. حاول بعد ${remaining} ثانية`);
+      return;
+    }
+
     setLoading(true);
     try {
       const appUser = await login(identifier.trim(), password);
+      attemptsRef.current = 0; // Reset on success
 
       if (appUser.status !== "active") {
         navigate("/pending-approval", { replace: true });
@@ -37,7 +50,14 @@ const Login = () => {
         navigate("/affiliate/dashboard", { replace: true });
       }
     } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول");
+      attemptsRef.current += 1;
+      if (attemptsRef.current >= MAX_ATTEMPTS) {
+        lockoutUntilRef.current = Date.now() + LOCKOUT_MS;
+        attemptsRef.current = 0;
+        setError("تم تجاوز عدد المحاولات. حاول بعد دقيقة");
+      } else {
+        setError(err.message || "فشل تسجيل الدخول");
+      }
     } finally {
       setLoading(false);
     }
