@@ -97,8 +97,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       plan: (subData?.plan as PlanType) || undefined,
       sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
     };
-  } catch (err) {
-    console.error("[fetchAppUser] error:", err);
+  } catch {
     return null;
   }
 }
