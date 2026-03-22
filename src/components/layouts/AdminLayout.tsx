@@ -12,6 +12,7 @@ const sidebarItems = [
   { title: "التحليلات", url: "/admin/analytics", icon: BarChart3 },
   { title: "سجلات التوزيع", url: "/admin/distribution", icon: Send },
   { title: "طلبات الخدمات", url: "/admin/services", icon: Headphones },
+  { title: "المحتوى التدريبي", url: "/admin/training", icon: BookOpen },
 ];
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
