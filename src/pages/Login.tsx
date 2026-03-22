@@ -1,8 +1,11 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 1 minute
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
@@ -12,6 +15,8 @@ const Login = () => {
   const [showPw, setShowPw] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const attemptsRef = useRef(0);
+  const lockoutUntilRef = useRef(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
