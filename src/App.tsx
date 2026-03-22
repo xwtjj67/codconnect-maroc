@@ -34,6 +34,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminDistribution from "./pages/admin/AdminDistribution";
 import AdminServices from "./pages/admin/AdminServices";
+import AdminTraining from "./pages/admin/AdminTraining";
 
 const queryClient = new QueryClient();
 
