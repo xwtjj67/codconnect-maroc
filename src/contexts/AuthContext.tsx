@@ -213,14 +213,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (error) throw new Error(error.message);
   };
 
-  const signupMerchant = async (data: { name: string; email: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => {
+  const signupMerchant = async (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           name: data.name, phone: data.phone, city: data.city,
-          whatsapp: data.whatsapp, store_name: data.storeName, role: "product_owner",
+          username: data.username, store_name: data.storeName, role: "product_owner",
         },
       },
     });
