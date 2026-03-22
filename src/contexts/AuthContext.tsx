@@ -29,8 +29,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isPending: boolean;
   login: (email: string, password: string) => Promise<AppUser>;
-  signupAffiliate: (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
-  signupMerchant: (data: { name: string; email: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => Promise<void>;
+  signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => Promise<void>;
+  signupMerchant: (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
   hasPlan: (plan: PlanType) => boolean;
@@ -165,9 +165,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<AppUser> => {
+  const login = async (identifier: string, password: string): Promise<AppUser> => {
     skipListenerRef.current = true;
     try {
+      let email = identifier;
+      // If not an email, look up the email by username via RPC
+      if (!identifier.includes("@")) {
+        const { data: foundEmail, error: lookupErr } = await supabase.rpc("get_email_by_username", { desired_username: identifier });
+        if (lookupErr || !foundEmail) throw new Error("اسم المستخدم غير موجود");
+        email = foundEmail as string;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
       
@@ -183,28 +191,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signupAffiliate = async (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => {
+  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           name: data.name, phone: data.phone, city: data.city,
-          whatsapp: data.whatsapp, role: "affiliate",
+          username: data.username, role: "affiliate",
         },
       },
     });
     if (error) throw new Error(error.message);
   };
 
-  const signupMerchant = async (data: { name: string; email: string; storeName: string; phone: string; city: string; whatsapp: string; password: string }) => {
+  const signupMerchant = async (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           name: data.name, phone: data.phone, city: data.city,
-          whatsapp: data.whatsapp, store_name: data.storeName, role: "product_owner",
+          username: data.username, store_name: data.storeName, role: "product_owner",
         },
       },
     });

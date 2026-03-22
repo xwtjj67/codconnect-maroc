@@ -514,6 +514,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_username_available: {
+        Args: { desired_username: string }
+        Returns: boolean
+      }
+      get_email_by_username: {
+        Args: { desired_username: string }
+        Returns: string
+      }
       get_next_sheet_index: { Args: never; Returns: number }
       has_role: {
         Args: {
