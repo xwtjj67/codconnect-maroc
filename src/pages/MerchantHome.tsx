@@ -4,7 +4,8 @@ import {
   Package, BarChart3, Users, ShieldCheck, Zap, Headphones,
   TrendingUp, MessageCircle, Crown, Rocket, Star,
   HandCoins, Truck, LogIn, Store, Settings, Layers,
-  ShoppingCart, CheckCircle, Warehouse,
+  ShoppingCart, CheckCircle, Warehouse, Globe, Megaphone,
+  Image, Sparkles, UserCheck,
 } from "lucide-react";
 
 const openWhatsApp = (text: string) => {
