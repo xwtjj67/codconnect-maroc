@@ -2,6 +2,7 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { distributeToSheet } from "@/services/sheetsDistribution";
 
 const MerchantSignup = () => {
   const [form, setForm] = useState({ name: "", email: "", storeName: "", phone: "", city: "", whatsapp: "", password: "", confirmPassword: "" });
