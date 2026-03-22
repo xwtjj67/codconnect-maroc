@@ -137,6 +137,31 @@ const AffiliateProducts = () => {
                   <span className="gold-badge">عمولة: {selectedProduct.commission} DH</span>
                 )}
               </div>
+
+              {selectedProduct.images.length > 0 && (
+                <button
+                  onClick={async () => {
+                    for (let i = 0; i < selectedProduct.images.length; i++) {
+                      try {
+                        const res = await fetch(selectedProduct.images[i]);
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${selectedProduct.name}-${i + 1}.jpg`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch {
+                        window.open(selectedProduct.images[i], "_blank");
+                      }
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  تحميل الصور ({selectedProduct.images.length})
+                </button>
+              )}
             </div>
           </div>
         )}
