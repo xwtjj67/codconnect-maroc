@@ -1,6 +1,6 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import { useState, useEffect } from "react";
-import { Search, Package, PlayCircle } from "lucide-react";
+import { Search, Package, PlayCircle, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import LockedFeature from "@/components/shared/LockedFeature";
