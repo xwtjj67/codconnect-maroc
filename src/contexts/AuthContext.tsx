@@ -136,16 +136,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<AppUser> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
-    
-    // Immediately fetch user data after login
-    const appUser = await fetchAppUser(data.user.id, data.user.email);
-    if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
-    
-    setSupabaseUser(data.user);
-    setUser(appUser);
-    return appUser;
+    skipListenerRef.current = true;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
+      
+      const appUser = await fetchAppUser(data.user.id, data.user.email);
+      if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
+      
+      setSupabaseUser(data.user);
+      setUser(appUser);
+      setIsLoading(false);
+      return appUser;
+    } finally {
+      skipListenerRef.current = false;
+    }
   };
 
   const signupAffiliate = async (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => {
