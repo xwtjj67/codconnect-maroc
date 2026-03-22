@@ -38,6 +38,7 @@ const Login = () => {
     setLoading(true);
     try {
       const appUser = await login(identifier.trim(), password);
+      attemptsRef.current = 0; // Reset on success
 
       if (appUser.status !== "active") {
         navigate("/pending-approval", { replace: true });
@@ -49,7 +50,14 @@ const Login = () => {
         navigate("/affiliate/dashboard", { replace: true });
       }
     } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول");
+      attemptsRef.current += 1;
+      if (attemptsRef.current >= MAX_ATTEMPTS) {
+        lockoutUntilRef.current = Date.now() + LOCKOUT_MS;
+        attemptsRef.current = 0;
+        setError("تم تجاوز عدد المحاولات. حاول بعد دقيقة");
+      } else {
+        setError(err.message || "فشل تسجيل الدخول");
+      }
     } finally {
       setLoading(false);
     }
