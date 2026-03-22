@@ -6,7 +6,7 @@ import {
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
   Users, ShoppingCart, ClipboardCheck, Search, Wallet, LogIn, CheckCircle,
-  Award, ThumbsUp, ArrowDown,
+  Award, ThumbsUp, ArrowDown, Sparkles,
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
