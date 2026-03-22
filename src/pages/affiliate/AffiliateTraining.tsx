@@ -42,6 +42,7 @@ const AffiliateTraining = () => {
   const [dbContent, setDbContent] = useState<TrainingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("الكل");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<TrainingItem | null>(null);
 
   const userPlan = user?.plan || "standard";
