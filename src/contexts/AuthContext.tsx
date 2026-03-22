@@ -169,19 +169,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     skipListenerRef.current = true;
     try {
       let email = identifier;
-      // If not an email, look up the email by username
+      // If not an email, look up the email by username via RPC
       if (!identifier.includes("@")) {
-        const { data: profile, error: lookupErr } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("username", identifier)
-          .single();
-        if (lookupErr || !profile) throw new Error("اسم المستخدم غير موجود");
-        // Get user email from auth - we need to use the profile id
-        // Since we can't query auth.users, we'll try to sign in and let Supabase handle it
-        // Actually we need the email. Let's store it: for now query won't work without email.
-        // Workaround: try signing in with identifier as email first, if fails, error
-        throw new Error("يرجى استخدام البريد الإلكتروني لتسجيل الدخول، أو تحقق من اسم المستخدم");
+        const { data: foundEmail, error: lookupErr } = await supabase.rpc("get_email_by_username", { desired_username: identifier });
+        if (lookupErr || !foundEmail) throw new Error("اسم المستخدم غير موجود");
+        email = foundEmail as string;
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
