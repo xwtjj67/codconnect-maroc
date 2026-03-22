@@ -117,6 +117,60 @@ export type Database = {
           },
         ]
       }
+      distribution_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          sheet_index: number
+          success: boolean
+          user_name: string | null
+          user_phone: string | null
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sheet_index: number
+          success?: boolean
+          user_name?: string | null
+          user_phone?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sheet_index?: number
+          success?: boolean
+          user_name?: string | null
+          user_phone?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
+      distribution_state: {
+        Row: {
+          current_index: number
+          id: string
+          total_sheets: number
+          updated_at: string
+        }
+        Insert: {
+          current_index?: number
+          id?: string
+          total_sheets?: number
+          updated_at?: string
+        }
+        Update: {
+          current_index?: number
+          id?: string
+          total_sheets?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           affiliate_id: string
@@ -349,6 +403,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_next_sheet_index: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
