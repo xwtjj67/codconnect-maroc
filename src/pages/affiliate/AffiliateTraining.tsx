@@ -105,6 +105,17 @@ const AffiliateTraining = () => {
           <p className="text-sm text-muted-foreground mt-1">تعلم واكتسب مهارات جديدة لزيادة أرباحك</p>
         </div>
 
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="ابحث في المقالات والدورات..."
+            className="w-full h-10 pr-10 pl-4 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
+          />
+        </div>
+
         {/* Category filters */}
         <div className="flex flex-wrap gap-2">
           {categoryFilters.map(cat => (
