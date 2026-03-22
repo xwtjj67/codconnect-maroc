@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Users, GraduationCap, LogOut, Menu, X, Wallet } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, GraduationCap, LogOut, Menu, X, Wallet, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PlanBadge from "@/components/shared/PlanBadge";
 import codconnectLogo from "@/assets/codconnect-logo.png";
@@ -11,6 +11,7 @@ const sidebarItems = [
   { title: "الطلبات", url: "/affiliate/orders", icon: ShoppingCart },
   { title: "الإحالات", url: "/affiliate/referrals", icon: Users },
   { title: "التدريب", url: "/affiliate/training", icon: GraduationCap },
+  { title: "الخدمات", url: "/services", icon: Sparkles },
 ];
 
 const AffiliateLayout = ({ children }: { children: ReactNode }) => {
