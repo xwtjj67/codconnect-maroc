@@ -84,19 +84,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const fetchingRef = useRef(false);
+  const skipListenerRef = useRef(false);
 
   const loadUser = async (authUser: SupabaseUser) => {
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
-    try {
-      setSupabaseUser(authUser);
-      const appUser = await fetchAppUser(authUser.id, authUser.email);
-      setUser(appUser);
-    } finally {
-      fetchingRef.current = false;
-      setIsLoading(false);
-    }
+    setSupabaseUser(authUser);
+    const appUser = await fetchAppUser(authUser.id, authUser.email);
+    setUser(appUser);
+    setIsLoading(false);
   };
 
   const refreshUser = async () => {
