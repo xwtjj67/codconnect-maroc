@@ -14,6 +14,7 @@ import MerchantHome from "./pages/MerchantHome";
 import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
+import Services from "./pages/Services";
 
 import MerchantDashboard from "./pages/merchant/MerchantDashboard";
 import MerchantProducts from "./pages/merchant/MerchantProducts";
