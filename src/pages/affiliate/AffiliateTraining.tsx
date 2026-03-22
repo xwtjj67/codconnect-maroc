@@ -87,9 +87,12 @@ const AffiliateTraining = () => {
         readTime: a.readTime,
       }));
 
-  const filtered = allContent.filter(
-    c => activeCategory === "الكل" || c.category === activeCategory
-  );
+  const filtered = allContent.filter(c => {
+    const matchCategory = activeCategory === "الكل" || c.category === activeCategory;
+    const q = searchQuery.trim().toLowerCase();
+    const matchSearch = !q || c.title.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q);
+    return matchCategory && matchSearch;
+  });
 
   const articles = filtered.filter(c => c.type === "article");
   const videos = filtered.filter(c => c.type === "video");
