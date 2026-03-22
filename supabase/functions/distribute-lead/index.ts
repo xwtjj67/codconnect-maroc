@@ -9,13 +9,13 @@ const corsHeaders = {
 // Google Apps Script Web App URLs — one per agent sheet
 // IMPORTANT: Replace these with your actual deployed Apps Script URLs
 const SHEET_URLS: string[] = [
-  "https://script.google.com/macros/s/AKfycbwpXwD0Vf_WUcYeVteYgZVmTdl0NEPXzfYCraKRv7O8TyCSxWHh0na7mW6fFvh7O9ThTg/exec",
-  "https://script.google.com/macros/s/AKfycbzW9RESRiVLqsXLGVwFRF3zqCqVeXVhpCUs3oblf7Vi4G3sqAN1TonijrEUVjGH88C3/exec",
-  "https://script.google.com/macros/s/AKfycbymP4uyepPf2phbtKjaNW908GKhBfOGhb-_fAQMQInNG0lBIQTsdPIQgsEWGEscWhatCQ/exec",
-  "https://script.google.com/macros/s/AKfycbyjx3umjyZVeoseMHSHI46xfo-wfMYbjjOJjtlNVet-To8sZwsh5WRrJYp84BGym-yk/exec",
-  "https://script.google.com/macros/s/AKfycbyckS-JfYS-XzWwYzyDlxl_VBFaq7kdfQeEpQbOLUGdic_mJDmcCkg9jBcjDI4aCm22LA/exec",
-  "https://script.google.com/macros/s/AKfycbxmbYa0N4wN517tREXwgJ-A7V1EN09kz5cP06OdfJXnCUtzbQg8kw4ukeWtSW_kNtCd/exec",
-  "https://script.google.com/macros/s/AKfycbxd9DGNyAMksVvxG0YIMbmW0eBxrcqatYW6-83H-OVOJvhrMCI8d-IpCqyVz2GXyXRjgA/exec",
+  "https://script.google.com/macros/s/AKfycbzjqW1-8Rn0kihkizekjQnht8tjZhZlzXzo94IlYv_tj1ZhENZmJV7Zg55ikc8bnX1BHQ/exec",
+  "https://script.google.com/macros/s/AKfycbwccmkMCJLQz-8xlIoGp8Tzc0J973xE5DWRhC-Yg74kCEkVMml-bddWmyHv8ULuDPzU/exec",
+  "https://script.google.com/macros/s/AKfycbzVQPr_LsvBzfnMZrn3do4NgCQsyh0kVf-HUeJkXcEX5oWWT2IxddifpwnXNFFADDzzwg/exec",
+  "https://script.google.com/macros/s/AKfycbyxQTXmKr47_F8wXIfmH1lzS1k_Y6NFkIASUA0s7JCvhbki_hyp6qsyrsNzp-30EkLE/exec",
+  "https://script.google.com/macros/s/AKfycbyV04pu35s7ot3nsa-tVog2ds3Q6WeltTDdJA3-OjUDT7eOGMnv5V2mWdHaxK7nbHL8Hg/exec",
+  "https://script.google.com/macros/s/AKfycbx-40TpSpmGWfdobcsntAx0uUOYz___Z-N1rx2TG9AC3LxGfa2Yne3TuS2KyqaO7Le0/exec",
+  "https://script.google.com/macros/s/AKfycbzzMKI3oRziQbyZRKB1JyOpM8qo1mYYTpJB2F6PPq7KSWs6vGTjiKyPPqAYMCRhXOGcrw/exec",
 ];
 
 Deno.serve(async (req) => {
