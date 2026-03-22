@@ -77,6 +77,7 @@ const App = () => (
             <Route path="/merchant-signup" element={<MerchantSignup />} />
             <Route path="/pending-approval" element={<PendingRoute />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
 
             <Route path="/merchant/dashboard" element={<ProtectedRoute requiredRole="product_owner"><MerchantDashboard /></ProtectedRoute>} />
