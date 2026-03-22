@@ -81,7 +81,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
     
     const { data: subData } = await timeout(Promise.resolve(subQuery), 10000);
 
-    console.log("[fetchAppUser] Subscription:", subData);
+    
 
     return {
       id: userId,
