@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Shield, LogOut, Menu, X, Settings, Send, Headphones } from "lucide-react";
+import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Shield, LogOut, Menu, X, Settings, Send, Headphones, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
