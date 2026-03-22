@@ -2,6 +2,7 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { distributeToSheet } from "@/services/sheetsDistribution";
 
 const MerchantSignup = () => {
   const [form, setForm] = useState({ name: "", email: "", storeName: "", phone: "", city: "", whatsapp: "", password: "", confirmPassword: "" });
@@ -32,6 +33,13 @@ const MerchantSignup = () => {
       await signupMerchant({
         name: form.name, email: form.email, storeName: form.storeName,
         phone: form.phone, city: form.city, whatsapp: form.whatsapp, password: form.password,
+      });
+      await distributeToSheet({
+        name: form.name,
+        phone: form.phone,
+        role: "product_owner",
+        plan: "Basic",
+        date: new Date().toISOString(),
       });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
