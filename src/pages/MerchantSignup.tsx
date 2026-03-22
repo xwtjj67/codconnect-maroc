@@ -38,7 +38,7 @@ const MerchantSignup = () => {
         name: form.name,
         phone: form.phone,
         role: "product_owner",
-        plan: "Basic",
+        plan: "Basic (350DH)",
         date: new Date().toISOString(),
       });
       navigate("/pending-approval", { replace: true });

@@ -15,7 +15,7 @@ const sellerPlans = [
   {
     name: "Basic",
     subtitle: "صاحب متجر",
-    price: "300",
+    price: "350",
     priceLabel: "DH/شهر",
     badge: null,
     highlighted: false,
@@ -27,7 +27,7 @@ const sellerPlans = [
       { icon: Warehouse, text: "تخزين المنتجات (مستودع)" },
       { icon: Headphones, text: "دعم تقني أساسي" },
     ],
-    cta: "ابدأ الآن — 300 DH",
+    cta: "ابدأ الآن — 350 DH",
   },
   {
     name: "Pro",
