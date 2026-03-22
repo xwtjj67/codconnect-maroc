@@ -36,10 +36,10 @@ const AdminServices = () => {
   const fetchRequests = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("service_requests" as any)
+      .from("service_requests")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error && data) setRequests(data as any);
+    if (!error && data) setRequests(data as unknown as ServiceRequest[]);
     setLoading(false);
   };
 
