@@ -1,5 +1,5 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
-import { PlayCircle, BookOpen, FileDown, ShoppingCart, Lock } from "lucide-react";
+import { PlayCircle, BookOpen, FileDown, ShoppingCart, Lock, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
