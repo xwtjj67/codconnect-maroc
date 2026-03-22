@@ -93,12 +93,12 @@ const Services = () => {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.from("service_requests" as any).insert({
+      const { error } = await supabase.from("service_requests").insert({
         name: name.trim(),
         phone: phone.trim(),
         role,
         service_name: selectedService,
-      } as any);
+      });
       if (error) throw error;
       toast({ title: "✅ تم إرسال طلبك بنجاح", description: "سنتواصل معك قريباً" });
       setDialogOpen(false);
