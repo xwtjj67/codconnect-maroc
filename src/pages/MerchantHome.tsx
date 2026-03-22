@@ -211,7 +211,58 @@ const MerchantHome = () => {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Services Upsell */}
+      <section className="py-16 lg:py-24 relative overflow-hidden">
+        <div className="absolute top-0 right-1/3 w-[500px] h-[500px] bg-accent/5 rounded-full blur-3xl" />
+        <div className="container relative">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold">خدمات إضافية لرفع أرباحك 🚀</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              طوّر نشاطك بسرعة مع خدمات احترافية جاهزة — من تحسين التسعير إلى إدارة كاملة
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            {[
+              { icon: Globe, title: "إنشاء موقع كامل", desc: "موقع احترافي لعلامتك التجارية يرفع مصداقيتك", badge: "الأكثر طلباً", badgeClass: "bg-accent/20 text-accent border-accent/30" },
+              { icon: Zap, title: "حسابات إعلانية جاهزة", desc: "حسابات Facebook و TikTok مفعلة وجاهزة للإطلاق", badge: "POPULAR", badgeClass: "bg-primary/20 text-primary border-primary/30" },
+              { icon: Megaphone, title: "إدارة إعلانات مدفوعة", desc: "إدارة كاملة لحملاتك على Facebook و TikTok", badge: "جديد", badgeClass: "bg-primary/20 text-primary border-primary/30" },
+              { icon: UserCheck, title: "Influencer Marketing", desc: "حملات مع مؤثرين لزيادة الوعي والمبيعات", badge: "VIP", badgeClass: "bg-accent/20 text-accent border-accent/30" },
+              { icon: Image, title: "باقة Creatives جاهزة", desc: "تصاميم إعلانية احترافية لزيادة معدل التحويل", badge: "الأكثر طلباً", badgeClass: "bg-primary/20 text-primary border-primary/30" },
+            ].map((svc) => (
+              <div key={svc.title} className="glass-card p-6 space-y-4 group hover:border-accent/40 transition-all duration-300">
+                <div className="flex items-start justify-between">
+                  <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                    <svc.icon className="h-5 w-5 text-accent" />
+                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${svc.badgeClass}`}>
+                    {svc.badge}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-foreground group-hover:text-accent transition-colors">{svc.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{svc.desc}</p>
+                <Link
+                  to="/services"
+                  className="inline-flex items-center gap-2 w-full justify-center py-2.5 rounded-lg border border-accent/30 text-accent text-sm font-semibold hover:bg-accent/10 transition-colors"
+                >
+                  اطلب الآن
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center space-y-4">
+            <p className="text-lg font-bold text-foreground">بغيت تبيع أكثر وبسرعة؟</p>
+            <Link
+              to="/services"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(202,158,60,0.3)]"
+            >
+              <Sparkles className="h-5 w-5" />
+              شوف جميع الخدمات
+            </Link>
+          </div>
+        </div>
+      </section>
       <section className="py-20 lg:py-28">
         <div className="container text-center space-y-8">
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 border-accent/30 shadow-[0_0_40px_rgba(202,158,60,0.15)]">
