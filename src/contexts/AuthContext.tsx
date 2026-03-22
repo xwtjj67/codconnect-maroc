@@ -65,9 +65,6 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
     ]), 10000);
 
-    console.log("[fetchAppUser] Profile:", profileRes.data, profileRes.error?.message);
-    console.log("[fetchAppUser] Role:", roleRes.data, roleRes.error?.message);
-    console.log("[fetchAppUser] Status:", statusRes.data, statusRes.error?.message);
 
     const profile = profileRes.data;
     if (!profile) {
