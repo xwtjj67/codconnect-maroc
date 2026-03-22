@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Shield, LogOut, Menu, X, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Shield, LogOut, Menu, X, Settings, Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
@@ -10,6 +10,7 @@ const sidebarItems = [
   { title: "المنتجات", url: "/admin/products", icon: Package },
   { title: "الطلبات", url: "/admin/orders", icon: ShoppingCart },
   { title: "التحليلات", url: "/admin/analytics", icon: BarChart3 },
+  { title: "سجلات التوزيع", url: "/admin/distribution", icon: Send },
 ];
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
