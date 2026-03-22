@@ -433,10 +433,12 @@ export type Database = {
           is_published: boolean
           read_time: string | null
           sort_order: number
+          thumbnail: string | null
           title: string
           type: string
           updated_at: string
           video_url: string | null
+          views_count: number
         }
         Insert: {
           access_level?: string
@@ -448,10 +450,12 @@ export type Database = {
           is_published?: boolean
           read_time?: string | null
           sort_order?: number
+          thumbnail?: string | null
           title: string
           type?: string
           updated_at?: string
           video_url?: string | null
+          views_count?: number
         }
         Update: {
           access_level?: string
@@ -463,10 +467,12 @@ export type Database = {
           is_published?: boolean
           read_time?: string | null
           sort_order?: number
+          thumbnail?: string | null
           title?: string
           type?: string
           updated_at?: string
           video_url?: string | null
+          views_count?: number
         }
         Relationships: []
       }
@@ -508,6 +514,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      watch_history: {
+        Row: {
+          content_id: string
+          id: string
+          last_watched_at: string
+          user_id: string
+          watch_count: number
+        }
+        Insert: {
+          content_id: string
+          id?: string
+          last_watched_at?: string
+          user_id: string
+          watch_count?: number
+        }
+        Update: {
+          content_id?: string
+          id?: string
+          last_watched_at?: string
+          user_id?: string
+          watch_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_history_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "training_content"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
