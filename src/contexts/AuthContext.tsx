@@ -86,7 +86,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       .limit(1)
       .maybeSingle();
     
-    const { data: subData } = await timeout(subQuery.then(r => r), 10000);
+    const { data: subData } = await timeout(Promise.resolve(subQuery), 10000);
 
     console.log("[fetchAppUser] Subscription:", subData);
 
