@@ -51,15 +51,24 @@ const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
 async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    const [profileRes, roleRes, statusRes, subRes] = await Promise.all([
+    const [profileRes, roleRes, statusRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId).single(),
       supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
-      supabase.from("subscriptions").select("plan, seller_plan, is_active").eq("user_id", userId).eq("is_active", true).order("created_at", { ascending: false }).limit(1).single(),
     ]);
 
     const profile = profileRes.data;
     if (!profile) return null;
+
+    // Subscription query separately - may not exist for all users
+    const { data: subData } = await supabase
+      .from("subscriptions")
+      .select("plan, seller_plan, is_active")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     return {
       id: userId,
@@ -72,10 +81,11 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       storeName: profile.store_name || undefined,
       role: (roleRes.data?.role as UserRole) || "affiliate",
       status: (statusRes.data?.status as UserStatus) || "pending",
-      plan: (subRes.data?.plan as PlanType) || undefined,
-      sellerPlan: (subRes.data?.seller_plan as SellerPlanType) || undefined,
+      plan: (subData?.plan as PlanType) || undefined,
+      sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
     };
-  } catch {
+  } catch (err) {
+    console.error("fetchAppUser error:", err);
     return null;
   }
 }
@@ -84,19 +94,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const fetchingRef = useRef(false);
+  const skipListenerRef = useRef(false);
 
   const loadUser = async (authUser: SupabaseUser) => {
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
-    try {
-      setSupabaseUser(authUser);
-      const appUser = await fetchAppUser(authUser.id, authUser.email);
-      setUser(appUser);
-    } finally {
-      fetchingRef.current = false;
-      setIsLoading(false);
-    }
+    setSupabaseUser(authUser);
+    const appUser = await fetchAppUser(authUser.id, authUser.email);
+    setUser(appUser);
+    setIsLoading(false);
   };
 
   const refreshUser = async () => {
@@ -115,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
+        if (skipListenerRef.current) return; // Skip when login handles it directly
         if (session?.user) {
           await loadUser(session.user);
         } else {
@@ -141,16 +146,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<AppUser> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
-    
-    // Immediately fetch user data after login
-    const appUser = await fetchAppUser(data.user.id, data.user.email);
-    if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
-    
-    setSupabaseUser(data.user);
-    setUser(appUser);
-    return appUser;
+    skipListenerRef.current = true;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
+      
+      const appUser = await fetchAppUser(data.user.id, data.user.email);
+      if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
+      
+      setSupabaseUser(data.user);
+      setUser(appUser);
+      setIsLoading(false);
+      return appUser;
+    } finally {
+      skipListenerRef.current = false;
+    }
   };
 
   const signupAffiliate = async (data: { name: string; email: string; phone: string; city: string; whatsapp: string; password: string }) => {
