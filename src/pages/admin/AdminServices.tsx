@@ -47,8 +47,8 @@ const AdminServices = () => {
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase
-      .from("service_requests" as any)
-      .update({ status } as any)
+      .from("service_requests")
+      .update({ status: status as any })
       .eq("id", id);
     if (error) {
       toast({ title: "خطأ في تحديث الحالة", variant: "destructive" });
