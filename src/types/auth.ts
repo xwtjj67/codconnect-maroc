@@ -26,7 +26,7 @@ export const PLANS: Record<PlanType, UserPlan> = {
 };
 
 export const SELLER_PLANS: Record<SellerPlanType, SellerPlan> = {
-  basic: { type: "basic", maxProducts: 3, label: "Basic", price: 300 },
+  basic: { type: "basic", maxProducts: 3, label: "Basic", price: 350 },
   pro: { type: "pro", maxProducts: 10, label: "Pro", price: 500 },
 };
 

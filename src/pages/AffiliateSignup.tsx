@@ -35,7 +35,7 @@ const AffiliateSignup = () => {
         name: form.name,
         phone: form.phone,
         role: "affiliate",
-        plan: "Standard",
+        plan: "Standard (70DH)",
         date: new Date().toISOString(),
       });
       navigate("/pending-approval", { replace: true });

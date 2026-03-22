@@ -27,7 +27,7 @@ const sellerPlans = [
       { icon: Warehouse, text: "تخزين المنتجات (مستودع)" },
       { icon: Headphones, text: "دعم تقني أساسي" },
     ],
-    cta: "ابدأ الآن — 300 DH",
+    cta: "ابدأ الآن — 350 DH",
   },
   {
     name: "Pro",
