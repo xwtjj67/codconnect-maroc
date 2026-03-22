@@ -51,7 +51,6 @@ const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
 async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    console.log("[fetchAppUser] Starting for userId:", userId);
     
     // Add timeout to prevent hanging
     const timeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
