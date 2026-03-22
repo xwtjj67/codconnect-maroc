@@ -39,8 +39,8 @@ const openWhatsApp = (text: string) => {
 const plans = [
   {
     name: "Standard",
-    originalPrice: "100",
-    price: "30",
+    originalPrice: "150",
+    price: "70",
     badge: null,
     highlighted: false,
     features: [
