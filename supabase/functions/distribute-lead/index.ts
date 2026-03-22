@@ -9,13 +9,13 @@ const corsHeaders = {
 // Google Apps Script Web App URLs — one per agent sheet
 // IMPORTANT: Replace these with your actual deployed Apps Script URLs
 const SHEET_URLS: string[] = [
-  "https://script.google.com/macros/s/SHEET_1_DEPLOY_URL/exec", // data1.xlsx
-  "https://script.google.com/macros/s/SHEET_2_DEPLOY_URL/exec", // data2.xlsx
-  "https://script.google.com/macros/s/SHEET_3_DEPLOY_URL/exec", // data3.xlsx
-  "https://script.google.com/macros/s/SHEET_4_DEPLOY_URL/exec", // data4.xlsx
-  "https://script.google.com/macros/s/SHEET_5_DEPLOY_URL/exec", // data5.xlsx
-  "https://script.google.com/macros/s/SHEET_6_DEPLOY_URL/exec", // data6.xlsx
-  "https://script.google.com/macros/s/SHEET_7_DEPLOY_URL/exec", // data7.xlsx
+  "https://script.google.com/macros/s/AKfycbwpXwD0Vf_WUcYeVteYgZVmTdl0NEPXzfYCraKRv7O8TyCSxWHh0na7mW6fFvh7O9ThTg/exec",
+  "https://script.google.com/macros/s/AKfycbzW9RESRiVLqsXLGVwFRF3zqCqVeXVhpCUs3oblf7Vi4G3sqAN1TonijrEUVjGH88C3/exec",
+  "https://script.google.com/macros/s/AKfycbymP4uyepPf2phbtKjaNW908GKhBfOGhb-_fAQMQInNG0lBIQTsdPIQgsEWGEscWhatCQ/exec",
+  "https://script.google.com/macros/s/AKfycbyjx3umjyZVeoseMHSHI46xfo-wfMYbjjOJjtlNVet-To8sZwsh5WRrJYp84BGym-yk/exec",
+  "https://script.google.com/macros/s/AKfycbyckS-JfYS-XzWwYzyDlxl_VBFaq7kdfQeEpQbOLUGdic_mJDmcCkg9jBcjDI4aCm22LA/exec",
+  "https://script.google.com/macros/s/AKfycbxmbYa0N4wN517tREXwgJ-A7V1EN09kz5cP06OdfJXnCUtzbQg8kw4ukeWtSW_kNtCd/exec",
+  "https://script.google.com/macros/s/AKfycbxd9DGNyAMksVvxG0YIMbmW0eBxrcqatYW6-83H-OVOJvhrMCI8d-IpCqyVz2GXyXRjgA/exec",
 ];
 
 Deno.serve(async (req) => {
