@@ -21,12 +21,10 @@ export async function distributeToSheet(data: RegistrationData): Promise<void> {
     });
 
     if (error) {
-      console.error("Distribution error:", error);
-    } else {
-      console.log("Lead distributed successfully");
+      // Silent fail - don't block signup
     }
-  } catch (err) {
-    console.error("Failed to distribute lead:", err);
+  } catch {
+    // Don't block signup if distribution fails
     // Don't block signup if distribution fails
   }
 }
