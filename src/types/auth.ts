@@ -20,7 +20,7 @@ export interface SellerPlan {
 }
 
 export const PLANS: Record<PlanType, UserPlan> = {
-  standard: { type: "standard", commission: 10, maxProducts: 3, label: "Standard", price: 30 },
+  standard: { type: "standard", commission: 10, maxProducts: 3, label: "Standard", price: 70 },
   premium: { type: "premium", commission: 20, maxProducts: 5, label: "Premium", price: 200 },
   vip: { type: "vip", commission: 30, maxProducts: -1, label: "VIP", price: 350 },
 };
