@@ -12,6 +12,8 @@ import AffiliateSignup from "./pages/AffiliateSignup";
 import MerchantSignup from "./pages/MerchantSignup";
 import MerchantHome from "./pages/MerchantHome";
 import PendingApproval from "./pages/PendingApproval";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
 import Services from "./pages/Services";
@@ -76,6 +78,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/affiliate-signup" element={<AffiliateSignup />} />
             <Route path="/merchant-signup" element={<MerchantSignup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/pending-approval" element={<PendingRoute />} />
             <Route path="/support" element={<Support />} />
             <Route path="/services" element={<Services />} />
