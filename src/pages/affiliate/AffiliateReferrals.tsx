@@ -7,7 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 const AffiliateReferrals = () => {
   const [copied, setCopied] = useState(false);
   const { user } = useAuth();
-  const referralLink = `codconnect.ma/ref/${user?.id || "username"}`;
+  const username = user?.username || user?.id || "username";
+  const referralLink = `codconnect.ma/ref/${username}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);

@@ -1,6 +1,7 @@
 import AffiliateLayout from "@/components/layouts/AffiliateLayout";
 import StatCard from "@/components/shared/StatCard";
-import { DollarSign, ShoppingCart, Target, Users, TrendingUp } from "lucide-react";
+import ReferralSlider from "@/components/shared/ReferralSlider";
+import { DollarSign, ShoppingCart, Target, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PlanBadge from "@/components/shared/PlanBadge";
 import { PLANS } from "@/types/auth";
@@ -42,6 +43,9 @@ const AffiliateDashboard = () => {
           <StatCard title="إجمالي الطلبات" value={stats.orders} icon={<ShoppingCart className="h-6 w-6" />} tooltip="عدد الطلبات الإجمالي" />
           <StatCard title="قيد الانتظار" value={stats.pending} icon={<Target className="h-6 w-6" />} tooltip="طلبات لم يتم تأكيدها بعد" />
         </div>
+
+        {/* Referral Gamification Slider */}
+        <ReferralSlider />
 
         {stats.orders === 0 && !loading && (
           <div className="glass-card p-8 text-center space-y-3">
