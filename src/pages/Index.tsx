@@ -51,7 +51,7 @@ const plans = [
       { icon: Zap, text: "دخول فوري للمنصة" },
       { icon: Headphones, text: "دعم عبر واتساب" },
     ],
-    cta: "ابدأ الآن — 30 DH فقط",
+    cta: "ابدأ الآن — 70 DH فقط",
   },
   {
     name: "Premium",
