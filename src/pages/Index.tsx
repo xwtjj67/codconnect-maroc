@@ -6,7 +6,7 @@ import {
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
   Users, ShoppingCart, ClipboardCheck, Search, Wallet, LogIn, CheckCircle,
-  Award, ThumbsUp, ArrowDown,
+  Award, ThumbsUp, ArrowDown, Sparkles,
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
@@ -364,6 +364,27 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Services CTA */}
+      <section className="py-16 lg:py-20 bg-secondary/20">
+        <div className="container text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/30 text-accent text-sm font-medium">
+            <Sparkles className="h-4 w-4" />
+            جديد
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold">خدمات احترافية لتنمية أعمالك</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            من إعداد الإعلانات إلى إنشاء المواقع — خدمات متكاملة لتسريع نموك
+          </p>
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl gradient-teal text-primary-foreground font-bold text-lg hover:opacity-90 transition-opacity teal-glow"
+          >
+            <Sparkles className="h-5 w-5" />
+            اكتشف خدماتنا
+          </Link>
         </div>
       </section>
 
