@@ -67,10 +67,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
 
 
     const profile = profileRes.data;
-    if (!profile) {
-      console.error("[fetchAppUser] No profile found");
-      return null;
-    }
+    if (!profile) return null;
 
     // Subscription query separately - may not exist for all users
     const subQuery = supabase
