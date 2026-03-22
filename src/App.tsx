@@ -14,6 +14,7 @@ import MerchantHome from "./pages/MerchantHome";
 import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
+import Services from "./pages/Services";
 
 import MerchantDashboard from "./pages/merchant/MerchantDashboard";
 import MerchantProducts from "./pages/merchant/MerchantProducts";
@@ -32,6 +33,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminDistribution from "./pages/admin/AdminDistribution";
+import AdminServices from "./pages/admin/AdminServices";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +77,7 @@ const App = () => (
             <Route path="/merchant-signup" element={<MerchantSignup />} />
             <Route path="/pending-approval" element={<PendingRoute />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
 
             <Route path="/merchant/dashboard" element={<ProtectedRoute requiredRole="product_owner"><MerchantDashboard /></ProtectedRoute>} />
@@ -94,6 +97,7 @@ const App = () => (
             <Route path="/admin/orders" element={<ProtectedRoute requiredRole="admin"><AdminOrders /></ProtectedRoute>} />
             <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/admin/distribution" element={<ProtectedRoute requiredRole="admin"><AdminDistribution /></ProtectedRoute>} />
+            <Route path="/admin/services" element={<ProtectedRoute requiredRole="admin"><AdminServices /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
