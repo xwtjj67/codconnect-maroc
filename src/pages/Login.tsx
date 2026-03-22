@@ -86,6 +86,9 @@ const Login = () => {
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <div className="text-left">
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">نسيت كلمة السر؟</Link>
+              </div>
             </div>
             <button
               type="submit"
