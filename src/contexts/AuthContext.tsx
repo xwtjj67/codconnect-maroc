@@ -51,24 +51,45 @@ const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
 async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
   try {
-    const [profileRes, roleRes, statusRes] = await Promise.all([
+    console.log("[fetchAppUser] Starting for userId:", userId);
+    
+    // Add timeout to prevent hanging
+    const timeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Query timeout")), ms))
+      ]);
+
+    const [profileRes, roleRes, statusRes] = await timeout(Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId).single(),
       supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
-    ]);
+    ]), 10000);
+
+    console.log("[fetchAppUser] Profile:", profileRes.data, profileRes.error?.message);
+    console.log("[fetchAppUser] Role:", roleRes.data, roleRes.error?.message);
+    console.log("[fetchAppUser] Status:", statusRes.data, statusRes.error?.message);
 
     const profile = profileRes.data;
-    if (!profile) return null;
+    if (!profile) {
+      console.error("[fetchAppUser] No profile found");
+      return null;
+    }
 
     // Subscription query separately - may not exist for all users
-    const { data: subData } = await supabase
-      .from("subscriptions")
-      .select("plan, seller_plan, is_active")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: subData } = await timeout(
+      supabase
+        .from("subscriptions")
+        .select("plan, seller_plan, is_active")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      10000
+    );
+
+    console.log("[fetchAppUser] Subscription:", subData);
 
     return {
       id: userId,
@@ -85,7 +106,7 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
       sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
     };
   } catch (err) {
-    console.error("fetchAppUser error:", err);
+    console.error("[fetchAppUser] error:", err);
     return null;
   }
 }
