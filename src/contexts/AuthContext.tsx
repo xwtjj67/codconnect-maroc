@@ -77,17 +77,16 @@ async function fetchAppUser(userId: string, email?: string): Promise<AppUser | n
     }
 
     // Subscription query separately - may not exist for all users
-    const { data: subData } = await timeout(
-      supabase
-        .from("subscriptions")
-        .select("plan, seller_plan, is_active")
-        .eq("user_id", userId)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      10000
-    );
+    const subQuery = supabase
+      .from("subscriptions")
+      .select("plan, seller_plan, is_active")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    const { data: subData } = await timeout(subQuery.then(r => r), 10000);
 
     console.log("[fetchAppUser] Subscription:", subData);
 
