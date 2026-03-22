@@ -28,6 +28,13 @@ const Login = () => {
       return;
     }
 
+    // Rate limiting
+    if (Date.now() < lockoutUntilRef.current) {
+      const remaining = Math.ceil((lockoutUntilRef.current - Date.now()) / 1000);
+      setError(`تم تجاوز عدد المحاولات. حاول بعد ${remaining} ثانية`);
+      return;
+    }
+
     setLoading(true);
     try {
       const appUser = await login(identifier.trim(), password);
