@@ -32,6 +32,12 @@ app.use("/api/", apiLimiter);
 // Static files (uploads)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Serve frontend build
+app.use(express.static(path.join(__dirname, "../dist")));
+
+// DB config log
+console.log("📦 DB:", process.env.DB_NAME || "codconnect_db", "@", process.env.DB_HOST || "localhost");
+
 // ============================================
 // Routes
 // ============================================
