@@ -1,8 +1,7 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
-import { CheckCircle, XCircle, Package, Edit } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { CheckCircle, XCircle, Package, Edit, Users, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 interface AdminProduct {
-  id: string; name: string; merchantName: string;
+  id: string; name: string; merchantName: string; merchantId: string;
   costPrice: number; sellingPrice: number | null; commission: number | null;
-  stock: number; approvalStatus: string; visibility: string;
+  stock: number; approvalStatus: string; visibility: string; category: string | null;
 }
+
+const CATEGORIES = [
+  { value: "cosmetics", label: "تجميل" },
+  { value: "electronics", label: "الكترونيات" },
+  { value: "fashion", label: "ملابس" },
+  { value: "home", label: "منزل" },
+  { value: "fitness", label: "رياضة" },
+  { value: "other", label: "أخرى" },
+];
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -24,7 +32,13 @@ const AdminProducts = () => {
   const [editSellingPrice, setEditSellingPrice] = useState("");
   const [editCommission, setEditCommission] = useState("");
   const [editVisibility, setEditVisibility] = useState("standard");
+  const [editCategory, setEditCategory] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Merchant limits
+  const [showMerchantLimits, setShowMerchantLimits] = useState(false);
+  const [merchantLimits, setMerchantLimits] = useState<Record<string, number>>({});
+  const [limitInputs, setLimitInputs] = useState<Record<string, string>>({});
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -32,9 +46,11 @@ const AdminProducts = () => {
       const { products: data } = await api.getAllProducts();
       setProducts(data.map((p: any) => ({
         id: p.id, name: p.name, merchantName: p.merchant_name || "غير معروف",
+        merchantId: p.merchant_id,
         costPrice: Number(p.cost_price), sellingPrice: p.selling_price ? Number(p.selling_price) : null,
         commission: p.commission ? Number(p.commission) : null,
         stock: p.stock, approvalStatus: p.approval_status, visibility: p.visibility,
+        category: p.category,
       })));
     } catch { }
     setLoading(false);
@@ -47,6 +63,7 @@ const AdminProducts = () => {
     setEditSellingPrice(p.sellingPrice?.toString() || "");
     setEditCommission(p.commission?.toString() || "");
     setEditVisibility(p.visibility);
+    setEditCategory(p.category || "");
   };
 
   const handleApproveWithPricing = async () => {
@@ -55,11 +72,10 @@ const AdminProducts = () => {
     const comm = parseFloat(editCommission);
     if (isNaN(sp) || sp <= 0) { toast.error("أدخل سعر بيع صحيح"); return; }
     if (isNaN(comm) || comm < 0) { toast.error("أدخل عمولة صحيحة"); return; }
-
     setSaving(true);
     try {
       await api.approveProduct(editProduct.id, {
-        selling_price: sp, commission: comm, visibility: editVisibility, approval_status: "approved",
+        selling_price: sp, commission: comm, visibility: editVisibility, approval_status: "approved", category: editCategory,
       });
       toast.success("تمت الموافقة وتحديث الأسعار بنجاح");
       setEditProduct(null);
@@ -74,11 +90,10 @@ const AdminProducts = () => {
     const comm = parseFloat(editCommission);
     if (isNaN(sp) || sp <= 0) { toast.error("أدخل سعر بيع صحيح"); return; }
     if (isNaN(comm) || comm < 0) { toast.error("أدخل عمولة صحيحة"); return; }
-
     setSaving(true);
     try {
       await api.updateProduct(editProduct.id, {
-        selling_price: sp, commission: comm, visibility: editVisibility,
+        selling_price: sp, commission: comm, visibility: editVisibility, category: editCategory,
       });
       toast.success("تم تحديث الأسعار بنجاح");
       setEditProduct(null);
@@ -95,6 +110,13 @@ const AdminProducts = () => {
     } catch { }
   };
 
+  // Get unique merchants
+  const merchants = [...new Map(products.map(p => [p.merchantId, { id: p.merchantId, name: p.merchantName }])).values()];
+  const getMerchantProductCounts = (mid: string) => {
+    const merchantProducts = products.filter(p => p.merchantId === mid);
+    return { total: merchantProducts.length, approved: merchantProducts.filter(p => p.approvalStatus === "approved").length };
+  };
+
   const displayed = tab === "pending" ? products.filter(p => p.approvalStatus === "pending") : products;
   const pendingCount = products.filter(p => p.approvalStatus === "pending").length;
   const profit = editProduct ? (parseFloat(editSellingPrice) || 0) - editProduct.costPrice - (parseFloat(editCommission) || 0) : 0;
@@ -105,6 +127,9 @@ const AdminProducts = () => {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold">إدارة المنتجات</h1>
           <div className="flex gap-2">
+            <button onClick={() => setShowMerchantLimits(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-secondary/50 text-muted-foreground hover:bg-secondary transition-colors">
+              <Settings className="h-4 w-4" />حدود الموردين
+            </button>
             <button onClick={() => setTab("all")} className={`px-4 py-2 rounded-lg text-sm transition-all ${tab === "all" ? "gradient-teal text-primary-foreground font-medium" : "bg-secondary/50 text-muted-foreground"}`}>الكل ({products.length})</button>
             <button onClick={() => setTab("pending")} className={`px-4 py-2 rounded-lg text-sm transition-all ${tab === "pending" ? "gradient-teal text-primary-foreground font-medium" : "bg-secondary/50 text-muted-foreground"}`}>قيد الموافقة ({pendingCount})</button>
           </div>
@@ -125,10 +150,10 @@ const AdminProducts = () => {
                   <tr className="border-b border-border/50">
                     <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المورد</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">الفئة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">العمولة</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">المخزون</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">إجراءات</th>
                   </tr>
@@ -138,10 +163,10 @@ const AdminProducts = () => {
                     <tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors">
                       <td className="p-4 font-medium">{p.name}</td>
                       <td className="p-4 text-muted-foreground">{p.merchantName}</td>
+                      <td className="p-4 text-muted-foreground">{CATEGORIES.find(c => c.value === p.category)?.label || p.category || "—"}</td>
                       <td className="p-4 text-muted-foreground">{p.costPrice} DH</td>
                       <td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "—"}</td>
                       <td className="p-4">{p.commission ? <span className="gold-badge">{p.commission} DH</span> : "—"}</td>
-                      <td className="p-4 text-muted-foreground">{p.stock}</td>
                       <td className="p-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${p.approvalStatus === "approved" ? "text-green-400 bg-green-400/10" : p.approvalStatus === "rejected" ? "text-destructive bg-destructive/10" : "text-accent bg-accent/10"}`}>
                           {p.approvalStatus === "approved" ? "مقبول" : p.approvalStatus === "rejected" ? "مرفوض" : "قيد الموافقة"}
@@ -162,6 +187,7 @@ const AdminProducts = () => {
         )}
       </div>
 
+      {/* Edit Product Dialog */}
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
         <DialogContent className="sm:max-w-md" dir="rtl">
           <DialogHeader><DialogTitle>تحديد سعر البيع والعمولة</DialogTitle></DialogHeader>
@@ -174,6 +200,13 @@ const AdminProducts = () => {
               </div>
               <div className="space-y-2"><Label>سعر البيع (DH)</Label><Input type="number" min={0} value={editSellingPrice} onChange={e => setEditSellingPrice(e.target.value)} dir="ltr" /></div>
               <div className="space-y-2"><Label>عمولة المسوق (DH)</Label><Input type="number" min={0} value={editCommission} onChange={e => setEditCommission(e.target.value)} dir="ltr" /></div>
+              <div className="space-y-2">
+                <Label>الفئة</Label>
+                <Select value={editCategory} onValueChange={setEditCategory}>
+                  <SelectTrigger><SelectValue placeholder="اختر الفئة" /></SelectTrigger>
+                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>مستوى الرؤية</Label>
                 <Select value={editVisibility} onValueChange={setEditVisibility}>
@@ -192,6 +225,39 @@ const AdminProducts = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Merchant Limits Dialog */}
+      <Dialog open={showMerchantLimits} onOpenChange={setShowMerchantLimits}>
+        <DialogContent className="sm:max-w-lg" dir="rtl">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Users className="h-5 w-5" />حدود المنتجات للموردين</DialogTitle></DialogHeader>
+          <div className="space-y-3 mt-2 max-h-[60vh] overflow-y-auto">
+            {merchants.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">لا يوجد موردين</p>
+            ) : (
+              merchants.map(m => {
+                const counts = getMerchantProductCounts(m.id);
+                return (
+                  <div key={m.id} className="p-3 rounded-lg bg-secondary/50 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-sm">{m.name}</p>
+                      <p className="text-xs text-muted-foreground">{counts.approved} مقبول من {counts.total}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">الحد:</Label>
+                      <Input
+                        type="number" min={0} className="w-20 h-8 text-xs" dir="ltr"
+                        value={limitInputs[m.id] ?? merchantLimits[m.id] ?? "3"}
+                        onChange={e => setLimitInputs(prev => ({ ...prev, [m.id]: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+            <p className="text-xs text-muted-foreground text-center">الحد يحدد عدد المنتجات المقبولة القصوى لكل مورد. المنتجات الإضافية تبقى قيد المراجعة.</p>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>

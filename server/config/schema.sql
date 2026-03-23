@@ -23,9 +23,16 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(20),
   city VARCHAR(100),
   store_name VARCHAR(255),
+  preferred_category VARCHAR(100),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add preferred_category if not exists
+DO $$ BEGIN
+  ALTER TABLE users ADD COLUMN preferred_category VARCHAR(100);
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
 
 -- User Roles
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -186,14 +193,35 @@ CREATE TABLE IF NOT EXISTS distribution_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Merchant Limits
+CREATE TABLE IF NOT EXISTS merchant_limits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  merchant_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  approved_product_limit INTEGER DEFAULT 3,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Affiliate Product Access
+CREATE TABLE IF NOT EXISTS affiliate_product_access (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  affiliate_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE NOT NULL,
+  is_authorized BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(affiliate_id, product_id)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
 CREATE INDEX IF NOT EXISTS idx_products_merchant ON products(merchant_id);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_orders_affiliate ON orders(affiliate_id);
 CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
 CREATE INDEX IF NOT EXISTS idx_training_published ON training_content(is_published);
+CREATE INDEX IF NOT EXISTS idx_affiliate_access ON affiliate_product_access(affiliate_id);
 
 -- Grant permissions to app user (only if role exists)
 DO $$ BEGIN

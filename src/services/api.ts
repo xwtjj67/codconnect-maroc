@@ -99,6 +99,7 @@ class ApiClient {
     username?: string;
     store_name?: string;
     whatsapp?: string;
+    preferred_category?: string;
   }) {
     // Signup does NOT return a token — user goes to pending page
     const result = await this.request<{ message: string; status: string; user: any }>("/auth/signup", {
@@ -159,6 +160,13 @@ class ApiClient {
     return this.request(`/users/${userId}/plan`, {
       method: "PATCH",
       body: JSON.stringify({ [planType]: plan }),
+    });
+  }
+
+  async updateUserCategory(userId: string, category: string) {
+    return this.request(`/users/${userId}/category`, {
+      method: "PATCH",
+      body: JSON.stringify({ preferred_category: category }),
     });
   }
 

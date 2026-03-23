@@ -1,14 +1,27 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
-import { CheckCircle, XCircle, Search, Filter, MessageCircle, Crown } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { CheckCircle, XCircle, Search, Filter, MessageCircle, Crown, Tag } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserRow {
   id: string; name: string; phone: string; city: string;
   role: string; status: string; plan: string | null; sellerPlan: string | null;
+  preferredCategory: string | null;
 }
+
+const CATEGORIES = [
+  { value: "cosmetics", label: "تجميل" },
+  { value: "electronics", label: "الكترونيات" },
+  { value: "fashion", label: "ملابس" },
+  { value: "home", label: "منزل" },
+  { value: "fitness", label: "رياضة" },
+  { value: "other", label: "أخرى" },
+];
 
 const openWhatsApp = (phone: string) => {
   window.open(`https://wa.me/${phone.replace(/^0/, "212")}`, "_blank");
@@ -28,6 +41,11 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
 
+  // Category edit dialog
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editCategory, setEditCategory] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -36,6 +54,7 @@ const AdminUsers = () => {
         id: u.id, name: u.name, phone: u.phone, city: u.city || "",
         role: u.role || "affiliate", status: u.status || "pending",
         plan: u.plan || null, sellerPlan: u.seller_plan || null,
+        preferredCategory: u.preferred_category || null,
       })));
     } catch { }
     setLoading(false);
@@ -59,6 +78,18 @@ const AdminUsers = () => {
       fetchUsers();
     } catch { toast.error("حدث خطأ أثناء تحديث الخطة"); }
     finally { setUpdatingPlan(null); }
+  };
+
+  const saveCategory = async () => {
+    if (!editUser) return;
+    setSavingCategory(true);
+    try {
+      await api.updateUserCategory(editUser.id, editCategory);
+      toast.success("تم تحديث الفئة");
+      setEditUser(null);
+      fetchUsers();
+    } catch { toast.error("حدث خطأ"); }
+    setSavingCategory(false);
   };
 
   const filtered = users
@@ -111,6 +142,7 @@ const AdminUsers = () => {
                     <th className="text-right p-4 font-medium text-muted-foreground">الهاتف</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المدينة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الدور</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">الفئة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">الخطة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">إجراءات</th>
@@ -123,6 +155,14 @@ const AdminUsers = () => {
                       <td className="p-4 text-muted-foreground" dir="ltr">{u.phone}</td>
                       <td className="p-4 text-muted-foreground">{u.city}</td>
                       <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${u.role === "affiliate" ? "text-primary bg-primary/10" : "text-accent bg-accent/10"}`}>{roleLabels[u.role] || u.role}</span></td>
+                      <td className="p-4">
+                        {u.role === "affiliate" ? (
+                          <button onClick={() => { setEditUser(u); setEditCategory(u.preferredCategory || ""); }} className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-secondary/50 hover:bg-secondary transition-colors">
+                            <Tag className="h-3 w-3" />
+                            {CATEGORIES.find(c => c.value === u.preferredCategory)?.label || "غير محدد"}
+                          </button>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
                       <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[u.status] || ""}`}>{statusLabels[u.status] || u.status}</span></td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
@@ -156,6 +196,26 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
+
+      {/* Category Edit Dialog */}
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="sm:max-w-sm" dir="rtl">
+          <DialogHeader><DialogTitle>تعديل فئة المسوق</DialogTitle></DialogHeader>
+          {editUser && (
+            <div className="space-y-4 mt-2">
+              <p className="text-sm text-muted-foreground">المسوق: <span className="font-medium text-foreground">{editUser.name}</span></p>
+              <div className="space-y-2">
+                <Label>الفئة المفضلة</Label>
+                <Select value={editCategory} onValueChange={setEditCategory}>
+                  <SelectTrigger><SelectValue placeholder="اختر الفئة" /></SelectTrigger>
+                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <Button onClick={saveCategory} disabled={savingCategory} className="w-full">{savingCategory ? "جاري الحفظ..." : "حفظ"}</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

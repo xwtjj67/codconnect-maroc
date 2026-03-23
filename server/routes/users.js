@@ -7,7 +7,7 @@ const { authenticate, requireRole } = require("../middleware/auth");
 router.get("/", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT u.id, u.email, u.username, u.name, u.phone, u.city, u.store_name, u.created_at,
+      `SELECT u.id, u.email, u.username, u.name, u.phone, u.city, u.store_name, u.preferred_category, u.created_at,
               ur.role, us.status,
               s.plan, s.seller_plan, s.is_active as sub_active
        FROM users u
@@ -65,6 +65,19 @@ router.patch("/:id/plan", authenticate, requireRole("admin"), async (req, res) =
   } catch (err) {
     console.error("❌ Update plan error:", err.message);
     res.status(500).json({ error: "خطأ في تحديث الخطة" });
+  }
+});
+
+// Update user preferred category (admin)
+router.patch("/:id/category", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const { preferred_category } = req.body;
+    await db.query("UPDATE users SET preferred_category = $1, updated_at = NOW() WHERE id = $2", [preferred_category, req.params.id]);
+    console.log(`✅ User ${req.params.id} category → ${preferred_category}`);
+    res.json({ message: "تم تحديث الفئة" });
+  } catch (err) {
+    console.error("❌ Update category error:", err.message);
+    res.status(500).json({ error: "خطأ في التحديث" });
   }
 });
 

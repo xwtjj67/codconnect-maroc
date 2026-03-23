@@ -27,7 +27,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isPending: boolean;
   login: (identifier: string, password: string) => Promise<AppUser>;
-  signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => Promise<void>;
+  signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string; preferredCategory?: string }) => Promise<void>;
   signupMerchant: (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return appUser;
   };
 
-  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
+  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string; preferredCategory?: string }) => {
     await api.signup({
       name: data.name,
       email: data.email,
@@ -113,8 +113,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password: data.password,
       role: "affiliate",
       username: data.username,
+      preferred_category: data.preferredCategory,
     });
-    // No token returned, no auto-login — user goes to pending page
   };
 
   const signupMerchant = async (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => {
