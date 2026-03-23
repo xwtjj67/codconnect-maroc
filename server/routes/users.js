@@ -68,4 +68,17 @@ router.patch("/:id/plan", authenticate, requireRole("admin"), async (req, res) =
   }
 });
 
+// Update user preferred category (admin)
+router.patch("/:id/category", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const { preferred_category } = req.body;
+    await db.query("UPDATE users SET preferred_category = $1, updated_at = NOW() WHERE id = $2", [preferred_category, req.params.id]);
+    console.log(`✅ User ${req.params.id} category → ${preferred_category}`);
+    res.json({ message: "تم تحديث الفئة" });
+  } catch (err) {
+    console.error("❌ Update category error:", err.message);
+    res.status(500).json({ error: "خطأ في التحديث" });
+  }
+});
+
 module.exports = router;

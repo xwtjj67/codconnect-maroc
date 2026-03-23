@@ -111,7 +111,7 @@ const generateUsername = async (name) => {
 // Signup
 exports.signup = async (req, res) => {
   try {
-    const { name, email, phone, city, password, role, store_name, username: reqUsername } = req.body;
+    const { name, email, phone, city, password, role, store_name, username: reqUsername, preferred_category } = req.body;
     console.log(`📝 Signup attempt: ${email} (${role})`);
 
     if (!name || !email || !password || !role) {
@@ -170,12 +170,12 @@ exports.signup = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Insert user
+    // Insert user with preferred_category
     const userResult = await db.query(
-      `INSERT INTO users (email, password_hash, username, name, phone, city, store_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (email, password_hash, username, name, phone, city, store_name, preferred_category)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [email, passwordHash, username, name, phone || null, city || null, store_name || null]
+      [email, passwordHash, username, name, phone || null, city || null, store_name || null, preferred_category || null]
     );
     const userId = userResult.rows[0].id;
     console.log("📋 Inserted user:", userId, email);
