@@ -105,6 +105,21 @@ const ServicesContent = () => {
 const DashboardServices = () => {
   const { user } = useAuth();
 
+  if (user?.status !== "active") {
+    const Layout = user?.role === "product_owner" ? MerchantLayout : AffiliateLayout;
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4" dir="rtl">
+          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-3xl">🔒</span>
+          </div>
+          <h2 className="text-xl font-bold text-foreground">الخدمات غير متاحة</h2>
+          <p className="text-muted-foreground max-w-md">يجب أن يكون حسابك مفعلاً للوصول إلى الخدمات. تواصل مع الإدارة لتفعيل حسابك.</p>
+        </div>
+      </Layout>
+    );
+  }
+
   if (user?.role === "product_owner") {
     return <MerchantLayout><ServicesContent /></MerchantLayout>;
   }
