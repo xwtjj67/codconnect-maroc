@@ -81,4 +81,55 @@ router.patch("/:id/category", authenticate, requireRole("admin"), async (req, re
   }
 });
 
+// Get affiliate product access
+router.get("/:id/product-access", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT apa.product_id, apa.is_authorized, p.name as product_name, p.category
+       FROM affiliate_product_access apa
+       JOIN products p ON p.id = apa.product_id
+       WHERE apa.affiliate_id = $1`,
+      [req.params.id]
+    );
+    res.json({ access: result.rows });
+  } catch (err) {
+    console.error("❌ Get affiliate access error:", err.message);
+    res.status(500).json({ error: "خطأ" });
+  }
+});
+
+// Add/update affiliate product access
+router.put("/:id/product-access", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const { product_id, is_authorized } = req.body;
+    await db.query(
+      `INSERT INTO affiliate_product_access (affiliate_id, product_id, is_authorized)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (affiliate_id, product_id) DO UPDATE SET is_authorized = $3`,
+      [req.params.id, product_id, is_authorized]
+    );
+    console.log(`✅ Affiliate ${req.params.id} access to ${product_id} → ${is_authorized}`);
+    res.json({ message: "تم التحديث" });
+  } catch (err) {
+    console.error("❌ Update affiliate access error:", err.message);
+    res.status(500).json({ error: "خطأ" });
+  }
+});
+
+// Remove affiliate product access
+router.delete("/:id/product-access", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const { product_id } = req.body;
+    await db.query(
+      "DELETE FROM affiliate_product_access WHERE affiliate_id = $1 AND product_id = $2",
+      [req.params.id, product_id]
+    );
+    console.log(`✅ Affiliate ${req.params.id} access to ${product_id} removed`);
+    res.json({ message: "تم الحذف" });
+  } catch (err) {
+    console.error("❌ Remove affiliate access error:", err.message);
+    res.status(500).json({ error: "خطأ" });
+  }
+});
+
 module.exports = router;
