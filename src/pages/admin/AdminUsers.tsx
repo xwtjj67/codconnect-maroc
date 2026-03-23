@@ -1,17 +1,27 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
-import { CheckCircle, XCircle, Search, Filter, MessageCircle, Crown, Tag } from "lucide-react";
+import { CheckCircle, XCircle, Search, Filter, MessageCircle, Crown, Tag, ShieldCheck, Package } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface UserRow {
   id: string; name: string; phone: string; city: string;
   role: string; status: string; plan: string | null; sellerPlan: string | null;
   preferredCategory: string | null;
+}
+
+interface ProductAccess {
+  product_id: string;
+  product_name: string;
+  category: string | null;
+  is_authorized: boolean;
 }
 
 const CATEGORIES = [
@@ -32,6 +42,7 @@ const statusColors: Record<string, string> = { pending: "text-accent bg-accent/1
 const roleLabels: Record<string, string> = { affiliate: "مسوق", product_owner: "مورد", admin: "أدمن" };
 const planLabels: Record<string, string> = { standard: "Standard", premium: "Premium", vip: "VIP" };
 const sellerPlanLabels: Record<string, string> = { basic: "Basic", pro: "Pro" };
+const planLimits: Record<string, number> = { standard: 3, premium: 5, vip: 999 };
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -45,6 +56,14 @@ const AdminUsers = () => {
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [editCategory, setEditCategory] = useState("");
   const [savingCategory, setSavingCategory] = useState(false);
+
+  // Product authorization dialog
+  const [authUser, setAuthUser] = useState<UserRow | null>(null);
+  const [allProducts, setAllProducts] = useState<{ id: string; name: string; category: string | null }[]>([]);
+  const [accessMap, setAccessMap] = useState<Record<string, boolean>>({});
+  const [loadingAccess, setLoadingAccess] = useState(false);
+  const [savingAccess, setSavingAccess] = useState<string | null>(null);
+  const [accessFilter, setAccessFilter] = useState<"all" | "category" | "authorized">("category");
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -91,6 +110,57 @@ const AdminUsers = () => {
     } catch { toast.error("حدث خطأ"); }
     setSavingCategory(false);
   };
+
+  // Product authorization
+  const openAuthDialog = async (user: UserRow) => {
+    setAuthUser(user);
+    setLoadingAccess(true);
+    setAccessFilter("category");
+    try {
+      const [productsRes, accessRes] = await Promise.all([
+        api.getAllProducts(),
+        api.getAffiliateAccess(user.id),
+      ]);
+      const approved = (productsRes.products || [])
+        .filter((p: any) => p.approval_status === "approved")
+        .map((p: any) => ({ id: p.id, name: p.name, category: p.category }));
+      setAllProducts(approved);
+      const map: Record<string, boolean> = {};
+      (accessRes.access || []).forEach((a: any) => {
+        map[a.product_id] = a.is_authorized;
+      });
+      setAccessMap(map);
+    } catch { toast.error("خطأ في تحميل البيانات"); }
+    setLoadingAccess(false);
+  };
+
+  const toggleAccess = async (productId: string, authorize: boolean) => {
+    if (!authUser) return;
+    setSavingAccess(productId);
+    try {
+      if (authorize) {
+        await api.updateAffiliateAccess(authUser.id, productId, true);
+      } else {
+        await api.removeAffiliateAccess(authUser.id, productId);
+      }
+      setAccessMap(prev => {
+        const next = { ...prev };
+        if (authorize) next[productId] = true;
+        else delete next[productId];
+        return next;
+      });
+    } catch { toast.error("حدث خطأ"); }
+    setSavingAccess(null);
+  };
+
+  const authorizedCount = Object.values(accessMap).filter(Boolean).length;
+  const maxProducts = authUser ? planLimits[authUser.plan || "standard"] : 3;
+
+  const filteredProducts = allProducts.filter(p => {
+    if (accessFilter === "category") return p.category === authUser?.preferredCategory;
+    if (accessFilter === "authorized") return accessMap[p.id];
+    return true;
+  });
 
   const filtered = users
     .filter(u => roleFilter === "all" || u.role === roleFilter)
@@ -182,6 +252,11 @@ const AdminUsers = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1">
+                          {u.role === "affiliate" && (
+                            <button onClick={() => openAuthDialog(u)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="تخويل المنتجات">
+                              <ShieldCheck className="h-4 w-4" />
+                            </button>
+                          )}
                           {u.status !== "active" && <button onClick={() => updateStatus(u.id, "active")} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><CheckCircle className="h-4 w-4" /></button>}
                           {u.status !== "suspended" && <button onClick={() => updateStatus(u.id, "suspended")} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><XCircle className="h-4 w-4" /></button>}
                           {u.phone && <button onClick={() => openWhatsApp(u.phone)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"><MessageCircle className="h-4 w-4" /></button>}
@@ -212,6 +287,114 @@ const AdminUsers = () => {
                 </Select>
               </div>
               <Button onClick={saveCategory} disabled={savingCategory} className="w-full">{savingCategory ? "جاري الحفظ..." : "حفظ"}</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Authorization Dialog */}
+      <Dialog open={!!authUser} onOpenChange={(open) => !open && setAuthUser(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0" dir="rtl">
+          <DialogHeader className="px-6 pt-6 pb-3">
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              تخويل المنتجات
+            </DialogTitle>
+          </DialogHeader>
+
+          {authUser && (
+            <div className="flex flex-col flex-1 overflow-hidden">
+              {/* User info header */}
+              <div className="px-6 pb-3 space-y-2">
+                <div className="p-3 rounded-lg bg-secondary/50 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{authUser.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {CATEGORIES.find(c => c.value === authUser.preferredCategory)?.label || "بدون فئة"} • {planLabels[authUser.plan || "standard"]}
+                    </p>
+                  </div>
+                  <div className="text-left">
+                    <p className={`text-lg font-bold ${authorizedCount > maxProducts && maxProducts < 999 ? "text-destructive" : "text-primary"}`}>
+                      {authorizedCount}
+                      {maxProducts < 999 && <span className="text-xs text-muted-foreground font-normal">/{maxProducts}</span>}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">منتج مخول</p>
+                  </div>
+                </div>
+
+                {/* Filter tabs */}
+                <div className="flex gap-1.5">
+                  {([
+                    { key: "category" as const, label: "فئته" },
+                    { key: "all" as const, label: "الكل" },
+                    { key: "authorized" as const, label: "المخولة" },
+                  ]).map(f => (
+                    <button
+                      key={f.key}
+                      onClick={() => setAccessFilter(f.key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
+                        accessFilter === f.key
+                          ? "bg-primary text-primary-foreground font-medium"
+                          : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Products list */}
+              <ScrollArea className="flex-1 px-6 pb-6">
+                {loadingAccess ? (
+                  <div className="py-8 text-center">
+                    <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="py-8 text-center space-y-2">
+                    <Package className="h-8 w-8 text-muted-foreground mx-auto" />
+                    <p className="text-sm text-muted-foreground">لا توجد منتجات</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {filteredProducts.map(p => {
+                      const isAuthorized = !!accessMap[p.id];
+                      const isLoading = savingAccess === p.id;
+                      const isOverLimit = !isAuthorized && authorizedCount >= maxProducts && maxProducts < 999;
+
+                      return (
+                        <div
+                          key={p.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                            isAuthorized ? "bg-primary/5 border border-primary/20" : "bg-secondary/30 border border-transparent"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isAuthorized}
+                            disabled={isLoading || (isOverLimit && !isAuthorized)}
+                            onCheckedChange={(checked) => toggleAccess(p.id, !!checked)}
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {CATEGORIES.find(c => c.value === p.category)?.label || p.category || "—"}
+                            </p>
+                          </div>
+                          {isAuthorized && (
+                            <Badge variant="outline" className="text-[10px] border-primary/30 text-primary shrink-0">
+                              مخول
+                            </Badge>
+                          )}
+                          {isLoading && (
+                            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
             </div>
           )}
         </DialogContent>

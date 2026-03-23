@@ -307,6 +307,25 @@ class ApiClient {
     return this.request<{ logs: any[] }>("/distribution/logs");
   }
 
+  // ---- Affiliate Product Access ----
+  async getAffiliateAccess(affiliateId: string) {
+    return this.request<{ access: any[] }>(`/users/${affiliateId}/product-access`);
+  }
+
+  async updateAffiliateAccess(affiliateId: string, productId: string, isAuthorized: boolean) {
+    return this.request(`/users/${affiliateId}/product-access`, {
+      method: "PUT",
+      body: JSON.stringify({ product_id: productId, is_authorized: isAuthorized }),
+    });
+  }
+
+  async removeAffiliateAccess(affiliateId: string, productId: string) {
+    return this.request(`/users/${affiliateId}/product-access`, {
+      method: "DELETE",
+      body: JSON.stringify({ product_id: productId }),
+    });
+  }
+
   // ---- Referrals ----
   async getReferralCount() {
     return this.request<{ count: number }>("/referrals/count");
