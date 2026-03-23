@@ -145,9 +145,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const limit = planProductLimits[user.plan];
       return limit === -1 || currentCount < limit;
     }
-    if (user.role === "product_owner" && user.sellerPlan) {
-      const limit = sellerPlanLimits[user.sellerPlan];
-      return currentCount < limit;
+    // Merchants can upload unlimited products
+    if (user.role === "product_owner") {
+      return true;
     }
     return false;
   };

@@ -32,6 +32,12 @@ app.use("/api/", apiLimiter);
 // Static files (uploads)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Serve frontend build
+app.use(express.static(path.join(__dirname, "../dist")));
+
+// DB config log
+console.log("📦 DB:", process.env.DB_NAME || "codconnect_db", "@", process.env.DB_HOST || "localhost");
+
 // ============================================
 // Routes
 // ============================================
@@ -58,10 +64,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// 404 handler
-app.use((req, res) => {
-  console.log(`❌ 404: ${req.method} ${req.url}`);
-  res.status(404).json({ error: "Endpoint not found" });
+// SPA fallback — serve index.html for non-API routes
+app.get("*", (req, res) => {
+  const indexPath = path.join(__dirname, "../dist/index.html");
+  if (require("fs").existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: "Frontend not built" });
+  }
 });
 
 // Error handler
