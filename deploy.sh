@@ -2,90 +2,91 @@
 set -e
 
 # ============================================
-# CodConnect - Auto Deploy Script
+# CodConnect - Full Deploy Script (PM2 + Nginx)
 # ============================================
 
 APP_DIR="/home/codconnect"
-BRANCH="main"
 PM2_APP="codconnect-api"
+BRANCH="main"
 
 echo "=========================================="
-echo "  🚀 CodConnect - بدء التحديث التلقائي"
+echo "  🚀 CodConnect — بدء النشر الكامل"
 echo "=========================================="
 
-# 1. Pull latest code
+# 1. Pull latest
 echo ""
-echo "⬇️  [1/7] جلب آخر التحديثات..."
+echo "⬇️  [1/8] جلب آخر التحديثات..."
 cd "$APP_DIR"
 git fetch origin "$BRANCH"
 git reset --hard "origin/$BRANCH"
-echo "✅ تم جلب الكود"
+echo "✅ تم"
 
-# 2. Install frontend deps & build
+# 2. Frontend deps + build
 echo ""
-echo "📦 [2/7] تثبيت اعتماديات الواجهة..."
-cd "$APP_DIR/frontend"
+echo "📦 [2/8] بناء الواجهة..."
 npm install --production=false --silent 2>/dev/null || npm install
-echo "✅ تم التثبيت"
+VITE_API_URL=/api npm run build
+echo "✅ تم بناء dist/"
 
+# 3. Backend deps
 echo ""
-echo "🔨 [3/7] بناء الواجهة الأمامية..."
-VITE_API_URL=https://codconnect.ma/api npm run build
-echo "✅ تم البناء → dist/"
-
-# 3. Backend update
-echo ""
-echo "🔧 [4/7] تحديث الباكند..."
+echo "🔧 [3/8] تثبيت اعتماديات الباكند..."
 cd "$APP_DIR/server"
-npm install --production --silent 2>/dev/null || npm install
-echo "✅ تم تثبيت اعتماديات الباكند"
+npm install --production --silent 2>/dev/null || npm install --production
+echo "✅ تم"
 
-# 4. Run schema (safe — IF NOT EXISTS)
+# 4. Create uploads dir
 echo ""
-echo "🗄️  [5/7] تحديث قاعدة البيانات..."
-sudo -u postgres psql -d codconnect_db -f "$APP_DIR/server/config/schema.sql" 2>/dev/null && echo "✅ Schema updated" || echo "⚠️  Schema update skipped"
+echo "📁 [4/8] إنشاء مجلد الرفع..."
+mkdir -p "$APP_DIR/server/uploads/products"
+echo "✅ تم"
 
-# 5. Restart PM2
+# 5. Update schema
 echo ""
-echo "🔄 [6/7] إعادة تشغيل الخادم..."
+echo "🗄️  [5/8] تحديث قاعدة البيانات..."
+sudo -u postgres psql -d codconnect_db -f "$APP_DIR/server/config/schema.sql" 2>/dev/null && echo "✅ Schema OK" || echo "⚠️ Schema skipped"
+
+# 6. Restart PM2
+echo ""
+echo "🔄 [6/8] إعادة تشغيل السيرفر..."
+cd "$APP_DIR/server"
 pm2 delete "$PM2_APP" 2>/dev/null || true
-cd "$APP_DIR/server"
-pm2 start server.js --name "$PM2_APP"
+pm2 start server.js --name "$PM2_APP" --max-memory-restart 300M
 pm2 save
-echo "✅ تم تشغيل الباكند"
+echo "✅ تم"
 
-# 6. Reload Nginx
+# 7. Reload Nginx
 echo ""
-echo "🌐 [7/7] إعادة تحميل Nginx..."
+echo "🌐 [7/8] إعادة تحميل Nginx..."
 sudo nginx -t && sudo systemctl reload nginx
-echo "✅ تم إعادة تحميل Nginx"
+echo "✅ تم"
 
-# 7. Health check
+# 8. Health check
 echo ""
-echo "🏥 فحص صحة النظام..."
+echo "🏥 [8/8] فحص صحة النظام..."
 sleep 3
+
 HEALTH=$(curl -sf http://localhost:3001/api/health 2>/dev/null || echo "FAIL")
 if echo "$HEALTH" | grep -q "ok"; then
-  echo "✅ API يعمل بنجاح!"
+  echo "✅ API يعمل!"
 else
-  echo "⚠️  API لم يستجب - تحقق: pm2 logs $PM2_APP"
+  echo "⚠️ API لم يستجب — pm2 logs $PM2_APP"
 fi
 
-AUTH_TEST=$(curl -sf http://localhost:3001/api/auth/test 2>/dev/null || echo "FAIL")
-if echo "$AUTH_TEST" | grep -q "API works"; then
-  echo "✅ Auth endpoint يعمل!"
+AUTH=$(curl -sf http://localhost:3001/api/auth/test 2>/dev/null || echo "FAIL")
+if echo "$AUTH" | grep -q "API works"; then
+  echo "✅ Auth يعمل!"
 else
-  echo "⚠️  Auth endpoint لم يستجب"
+  echo "⚠️ Auth لم يستجب"
 fi
 
 echo ""
 echo "=========================================="
-echo "  ✅ تم التحديث بنجاح!"
+echo "  ✅ تم النشر بنجاح!"
 echo "=========================================="
 echo ""
 echo "📋 أوامر مفيدة:"
-echo "   pm2 logs $PM2_APP     → سجلات الباكند"
-echo "   pm2 status            → حالة العمليات"
-echo "   pm2 restart $PM2_APP  → إعادة تشغيل"
-echo "   nginx -t              → فحص Nginx"
+echo "   pm2 logs $PM2_APP"
+echo "   pm2 status"
+echo "   pm2 restart $PM2_APP"
 echo ""
