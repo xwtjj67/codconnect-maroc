@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import PlanBadge from "@/components/shared/PlanBadge";
 import { PLANS } from "@/types/auth";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 
 const AffiliateDashboard = () => {
   const { user } = useAuth();
@@ -16,15 +16,13 @@ const AffiliateDashboard = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data: orders } = await supabase.from("orders").select("*").eq("affiliate_id", user.id);
-      const confirmed = (orders || []).filter(o => ["confirmed", "delivered"].includes(o.status));
-      const pendingCount = (orders || []).filter(o => o.status === "pending").length;
-      const earnings = confirmed.reduce((s, o) => s + Number(o.commission_amount), 0);
-      setStats({ earnings, orders: (orders || []).length, pending: pendingCount });
+    api.getMyOrders().then(({ orders }) => {
+      const confirmed = orders.filter((o: any) => ["confirmed", "delivered"].includes(o.status));
+      const pendingCount = orders.filter((o: any) => o.status === "pending").length;
+      const earnings = confirmed.reduce((s: number, o: any) => s + Number(o.commission_amount), 0);
+      setStats({ earnings, orders: orders.length, pending: pendingCount });
       setLoading(false);
-    };
-    fetch();
+    }).catch(() => setLoading(false));
   }, [user]);
 
   return (
