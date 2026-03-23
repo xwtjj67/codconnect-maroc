@@ -18,6 +18,9 @@ COPY . .
 # Build frontend
 RUN npm run build
 
+# Create uploads directory
+RUN mkdir -p /app/server/uploads/products
+
 # Expose backend port
 EXPOSE 3001
 
