@@ -3,7 +3,7 @@ import StatCard from "@/components/shared/StatCard";
 import { Users, ShoppingCart, Package, DollarSign, TrendingUp, UserCheck, Store, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -12,29 +12,7 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const [{ count: totalUsers }, { count: affiliates }, { count: merchants }, { count: pendingUsers },
-        { count: totalProducts }, { count: totalOrders },
-        { data: orderData }] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "affiliate"),
-        supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "product_owner"),
-        supabase.from("user_statuses").select("*", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("products").select("*", { count: "exact", head: true }),
-        supabase.from("orders").select("*", { count: "exact", head: true }),
-        supabase.from("orders").select("selling_price, commission_amount").in("status", ["confirmed", "delivered"]),
-      ]);
-
-      const totalRevenue = orderData?.reduce((s, o) => s + Number(o.selling_price), 0) || 0;
-      const totalCommissions = orderData?.reduce((s, o) => s + Number(o.commission_amount), 0) || 0;
-
-      setStats({
-        totalUsers: totalUsers || 0, affiliates: affiliates || 0, merchants: merchants || 0,
-        pendingUsers: pendingUsers || 0, totalProducts: totalProducts || 0,
-        totalOrders: totalOrders || 0, totalRevenue, totalCommissions,
-      });
-    };
-    fetchStats();
+    api.getAdminStats().then(({ stats: s }) => setStats(s)).catch(() => {});
   }, []);
 
   return (

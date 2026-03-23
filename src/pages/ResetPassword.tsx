@@ -1,7 +1,7 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import api from "@/services/api";
 import { Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 import PasswordStrengthIndicator, { isPasswordStrong } from "@/components/auth/PasswordStrengthIndicator";
 
@@ -13,29 +13,9 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [validSession, setValidSession] = useState(false);
-  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check for recovery session from URL hash
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get("type");
-
-    if (type === "recovery") {
-      setValidSession(true);
-      setChecking(false);
-      return;
-    }
-
-    // Also check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setValidSession(true);
-      }
-      setChecking(false);
-    });
-  }, []);
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,11 +30,14 @@ const ResetPassword = () => {
       setError("كلمتا السر غير متطابقتين");
       return;
     }
+    if (!token) {
+      setError("رابط غير صالح");
+      return;
+    }
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw new Error(error.message);
+      await api.resetPassword(token, password);
       setSuccess(true);
       setTimeout(() => navigate("/login", { replace: true }), 3000);
     } catch (err: any) {
@@ -63,16 +46,6 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
-
-  if (checking) {
-    return (
-      <PublicLayout>
-        <div className="min-h-[80vh] flex items-center justify-center">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      </PublicLayout>
-    );
-  }
 
   return (
     <PublicLayout>
@@ -86,7 +59,7 @@ const ResetPassword = () => {
               <h2 className="text-lg font-semibold">تم تغيير كلمة السر بنجاح</h2>
               <p className="text-sm text-muted-foreground">سيتم توجيهك لتسجيل الدخول...</p>
             </div>
-          ) : !validSession ? (
+          ) : !token ? (
             <div className="text-center space-y-4 py-6">
               <h2 className="text-lg font-semibold text-destructive">رابط غير صالح</h2>
               <p className="text-sm text-muted-foreground">الرابط منتهي الصلاحية أو غير صالح. يرجى طلب رابط جديد.</p>

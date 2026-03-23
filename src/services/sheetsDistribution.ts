@@ -1,10 +1,9 @@
 /**
  * Centralized round-robin distribution system.
- * Calls a backend function that atomically assigns leads
- * to agent Google Sheets using a database counter.
+ * Calls the backend API to distribute leads.
  */
 
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 
 export interface RegistrationData {
   name: string;
@@ -16,15 +15,8 @@ export interface RegistrationData {
 
 export async function distributeToSheet(data: RegistrationData): Promise<void> {
   try {
-    const { error } = await supabase.functions.invoke("distribute-lead", {
-      body: data,
-    });
-
-    if (error) {
-      // Silent fail - don't block signup
-    }
+    await api.distribute(data);
   } catch {
-    // Don't block signup if distribution fails
     // Don't block signup if distribution fails
   }
 }
