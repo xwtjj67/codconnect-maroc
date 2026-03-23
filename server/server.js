@@ -64,10 +64,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// 404 handler
-app.use((req, res) => {
-  console.log(`❌ 404: ${req.method} ${req.url}`);
-  res.status(404).json({ error: "Endpoint not found" });
+// SPA fallback — serve index.html for non-API routes
+app.get("*", (req, res) => {
+  const indexPath = path.join(__dirname, "../dist/index.html");
+  if (require("fs").existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: "Frontend not built" });
+  }
 });
 
 // Error handler
