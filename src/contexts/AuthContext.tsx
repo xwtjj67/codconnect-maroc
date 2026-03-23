@@ -27,7 +27,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isPending: boolean;
   login: (identifier: string, password: string) => Promise<AppUser>;
-  signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => Promise<void>;
+  signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string; preferredCategory?: string }) => Promise<void>;
   signupMerchant: (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
