@@ -162,6 +162,13 @@ class ApiClient {
     });
   }
 
+  async updateUserCategory(userId: string, category: string) {
+    return this.request(`/users/${userId}/category`, {
+      method: "PATCH",
+      body: JSON.stringify({ preferred_category: category }),
+    });
+  }
+
   // ---- Products ----
   async getProducts() {
     return this.request<{ products: any[] }>("/products");
