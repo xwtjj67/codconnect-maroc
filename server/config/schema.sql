@@ -1,15 +1,18 @@
 -- ============================================
 -- CodConnect Database Schema
+-- Run as postgres superuser:
+--   sudo -u postgres psql -d codconnect_db -f schema.sql
 -- ============================================
 
-CREATE TYPE app_role AS ENUM ('affiliate', 'product_owner', 'admin');
-CREATE TYPE user_status AS ENUM ('pending', 'approved', 'active', 'suspended');
-CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled');
-CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'rejected');
-CREATE TYPE plan_type AS ENUM ('standard', 'premium', 'vip');
-CREATE TYPE visibility_level AS ENUM ('standard', 'premium', 'vip');
+-- ENUMs (IF NOT EXISTS workaround)
+DO $$ BEGIN CREATE TYPE app_role AS ENUM ('affiliate', 'product_owner', 'admin'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE user_status AS ENUM ('pending', 'approved', 'active', 'suspended'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'rejected'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE plan_type AS ENUM ('standard', 'premium', 'vip'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE visibility_level AS ENUM ('standard', 'premium', 'vip'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- Users & Profiles
+-- Users
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -23,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- User Roles
 CREATE TABLE IF NOT EXISTS user_roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
@@ -30,6 +34,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
   UNIQUE(user_id, role)
 );
 
+-- User Statuses
 CREATE TABLE IF NOT EXISTS user_statuses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
@@ -163,7 +168,7 @@ CREATE TABLE IF NOT EXISTS service_requests (
 CREATE TABLE IF NOT EXISTS distribution_state (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   current_index INTEGER DEFAULT 0,
-  total_sheets INTEGER DEFAULT 0,
+  total_sheets INTEGER DEFAULT 7,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -180,10 +185,17 @@ CREATE TABLE IF NOT EXISTS distribution_logs (
 );
 
 -- Indexes
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
-CREATE INDEX idx_products_merchant ON products(merchant_id);
-CREATE INDEX idx_orders_affiliate ON orders(affiliate_id);
-CREATE INDEX idx_orders_merchant ON orders(merchant_id);
-CREATE INDEX idx_training_published ON training_content(is_published);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_merchant ON products(merchant_id);
+CREATE INDEX IF NOT EXISTS idx_orders_affiliate ON orders(affiliate_id);
+CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
+CREATE INDEX IF NOT EXISTS idx_training_published ON training_content(is_published);
+
+-- Grant permissions to app user
+GRANT USAGE ON SCHEMA public TO codconnect_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO codconnect_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO codconnect_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO codconnect_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO codconnect_user;

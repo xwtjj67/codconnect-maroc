@@ -10,24 +10,16 @@ const generateUsername = async (name) => {
     .trim()
     .replace(/\s+/g, ".")
     .replace(/[^a-z0-9.]/g, "");
-  
   if (!base) base = "user";
 
   let username = base;
   let attempt = 0;
-
   while (true) {
-    const exists = await db.query(
-      "SELECT id FROM users WHERE username = $1",
-      [username]
-    );
+    const exists = await db.query("SELECT id FROM users WHERE username = $1", [username]);
     if (exists.rows.length === 0) return username;
     attempt++;
     username = `${base}${Math.floor(Math.random() * 99) + 1}`;
-    if (attempt > 20) {
-      username = `${base}${Date.now().toString(36)}`;
-      return username;
-    }
+    if (attempt > 20) return `${base}${Date.now().toString(36)}`;
   }
 };
 
@@ -35,25 +27,46 @@ const generateUsername = async (name) => {
 exports.signup = async (req, res) => {
   try {
     const { name, email, phone, city, password, role, store_name, username: reqUsername } = req.body;
-
     console.log(`📝 Signup attempt: ${email} (${role})`);
 
-    // Validate required fields
     if (!name || !email || !password || !role) {
       return res.status(400).json({ error: "جميع الحقول مطلوبة" });
     }
 
-    // Check email exists
-    const emailCheck = await db.query("SELECT id FROM users WHERE email = $1", [email]);
+    // Check email — only block if user is approved/active
+    const emailCheck = await db.query(
+      `SELECT u.id, us.status FROM users u
+       LEFT JOIN user_statuses us ON us.user_id = u.id
+       WHERE u.email = $1`,
+      [email]
+    );
     if (emailCheck.rows.length > 0) {
-      return res.status(400).json({ error: "البريد الإلكتروني مستخدم بالفعل" });
+      const existingStatus = emailCheck.rows[0].status;
+      if (existingStatus === "approved" || existingStatus === "active") {
+        return res.status(400).json({ error: "البريد الإلكتروني مستخدم بالفعل" });
+      }
+      // If pending — redirect to pending page
+      if (existingStatus === "pending") {
+        return res.status(409).json({ error: "حسابك في انتظار التفعيل", status: "pending" });
+      }
     }
 
-    // Check phone duplicate
+    // Check phone duplicate (only active/approved)
     if (phone) {
-      const phoneCheck = await db.query("SELECT id FROM users WHERE phone = $1", [phone]);
+      const phoneCheck = await db.query(
+        `SELECT u.id, us.status FROM users u
+         LEFT JOIN user_statuses us ON us.user_id = u.id
+         WHERE u.phone = $1`,
+        [phone]
+      );
       if (phoneCheck.rows.length > 0) {
-        return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
+        const s = phoneCheck.rows[0].status;
+        if (s === "approved" || s === "active") {
+          return res.status(400).json({ error: "رقم الهاتف مستخدم بالفعل" });
+        }
+        if (s === "pending") {
+          return res.status(409).json({ error: "حسابك في انتظار التفعيل", status: "pending" });
+        }
       }
     }
 
@@ -79,37 +92,28 @@ exports.signup = async (req, res) => {
        RETURNING *`,
       [email, passwordHash, username, name, phone || null, city || null, store_name || null]
     );
-
-    console.log("📋 Inserted user:", JSON.stringify(userResult.rows[0], null, 2));
-
     const userId = userResult.rows[0].id;
+    console.log("📋 Inserted user:", userResult.rows[0].id, userResult.rows[0].email);
 
     // Insert role
-    const roleResult = await db.query(
-      "INSERT INTO user_roles (user_id, role) VALUES ($1, $2) RETURNING *",
-      [userId, role]
-    );
-    console.log("📋 Inserted role:", JSON.stringify(roleResult.rows[0]));
+    await db.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2)", [userId, role]);
 
     // Insert status (pending)
-    await db.query(
-      "INSERT INTO user_statuses (user_id, status) VALUES ($1, 'pending')",
-      [userId]
-    );
+    await db.query("INSERT INTO user_statuses (user_id, status) VALUES ($1, 'pending')", [userId]);
 
-    // Create default subscription
-    await db.query(
-      "INSERT INTO subscriptions (user_id, plan) VALUES ($1, 'standard')",
-      [userId]
-    );
+    // Create default subscription (handle missing table gracefully)
+    try {
+      await db.query("INSERT INTO subscriptions (user_id, plan) VALUES ($1, 'standard')", [userId]);
+    } catch (subErr) {
+      console.log("⚠️ Subscriptions table missing, skipping:", subErr.message);
+    }
 
-    // Generate token
-    const token = jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: "7d" });
+    console.log(`✅ User created: ${username} (${role}) — status: pending`);
 
-    console.log(`✅ User created: ${username} (${role})`);
-
+    // Return user info WITHOUT token (no auto-login, must go to pending)
     res.status(201).json({
-      token,
+      message: "تم إنشاء حسابك بنجاح، في انتظار التفعيل",
+      status: "pending",
       user: {
         id: userId,
         email,
@@ -121,7 +125,7 @@ exports.signup = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Signup error:", err.message);
-    res.status(500).json({ error: "خطأ في إنشاء الحساب" });
+    res.status(500).json({ error: "خطأ في إنشاء الحساب: " + err.message });
   }
 };
 
@@ -129,14 +133,12 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
-
     console.log(`🔐 Login attempt: ${identifier}`);
 
     if (!identifier || !password) {
       return res.status(400).json({ error: "يرجى إدخال بيانات الدخول" });
     }
 
-    // Find user by email or username
     const result = await db.query(
       `SELECT u.id, u.email, u.username, u.name, u.password_hash, u.phone, u.city,
               ur.role, us.status
@@ -154,20 +156,28 @@ exports.login = async (req, res) => {
 
     const user = result.rows[0];
 
+    // Check status BEFORE password
+    if (user.status === "pending") {
+      return res.status(403).json({ error: "حسابك في انتظار التفعيل", status: "pending" });
+    }
+    if (user.status === "suspended") {
+      return res.status(403).json({ error: "حسابك موقوف، تواصل مع الدعم", status: "suspended" });
+    }
+
     // Verify password
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
     }
 
-    // Generate token
+    // Only active/approved users get a token
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    console.log(`✅ Login success: ${user.username} (${user.role})`);
+    console.log(`✅ Login success: ${user.username} (${user.role}) status: ${user.status}`);
 
     res.json({
       token,

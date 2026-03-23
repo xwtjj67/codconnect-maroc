@@ -98,10 +98,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (identifier: string, password: string): Promise<AppUser> => {
-    const { user: userData } = await api.login(identifier, password);
-    const appUser = mapUserData(userData);
-    setUser(appUser);
-    return appUser;
+    try {
+      const { user: userData } = await api.login(identifier, password);
+      const appUser = mapUserData(userData);
+      setUser(appUser);
+      return appUser;
+    } catch (err: any) {
+      // Re-throw with status info for pending/suspended handling
+      throw err;
+    }
   };
 
   const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
