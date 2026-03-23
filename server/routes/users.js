@@ -7,7 +7,7 @@ const { authenticate, requireRole } = require("../middleware/auth");
 router.get("/", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT u.id, u.email, u.username, u.name, u.phone, u.city, u.store_name, u.created_at,
+      `SELECT u.id, u.email, u.username, u.name, u.phone, u.city, u.store_name, u.preferred_category, u.created_at,
               ur.role, us.status,
               s.plan, s.seller_plan, s.is_active as sub_active
        FROM users u
