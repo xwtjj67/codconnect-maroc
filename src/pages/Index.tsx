@@ -6,7 +6,7 @@ import {
   TrendingUp, Check, Star, Zap, Clock, LayoutGrid, Crown, Layers, BarChart3,
   GraduationCap, Shield, Infinity, Rocket, Flame, Timer, BookOpen, MessageCircle,
   Users, ShoppingCart, ClipboardCheck, Search, Wallet, LogIn, CheckCircle,
-  Award, ThumbsUp, ArrowDown, Sparkles, Globe, Megaphone, Image, UserCheck,
+  Award, ThumbsUp, ArrowDown,
 } from "lucide-react";
 
 const useCountdown = (hours: number) => {
@@ -45,7 +45,7 @@ const plans = [
     highlighted: false,
     features: [
       { icon: BadgeDollarSign, text: "عمولة: 10% على كل طلب مؤكد" },
-      { icon: Package, text: "الوصول إلى 3 منتجات جاهزة" },
+      { icon: Package, text: "الوصول إلى 5 منتجات فريدة" },
       { icon: Clock, text: "سحب الأرباح كل 30 يوم" },
       { icon: LayoutGrid, text: "عرض منتج أساسي" },
       { icon: Zap, text: "دخول فوري للمنصة" },
@@ -61,7 +61,7 @@ const plans = [
     highlighted: false,
     features: [
       { icon: BadgeDollarSign, text: "عمولة: 20% — ضعف الربح" },
-      { icon: Package, text: "الوصول إلى 5 منتجات مختارة" },
+      { icon: Package, text: "الوصول إلى 10 منتجات مختارة" },
       { icon: Clock, text: "سحب الأرباح كل 20 يوم" },
       { icon: Layers, text: "صفحة منتج احترافية مفصلة" },
       { icon: Star, text: "أولوية في عرض المنتجات" },
@@ -369,62 +369,6 @@ const Index = () => {
 
       {/* Pricing Plans */}
       <PricingSection />
-
-      {/* Services Upsell */}
-      <section className="py-16 lg:py-24 relative overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
-        <div className="container relative">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">خدمات إضافية لرفع أرباحك 🚀</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              طوّر نشاطك بسرعة مع خدمات احترافية جاهزة — من الإعلانات إلى بناء موقعك الخاص
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {[
-              { icon: Globe, title: "إنشاء موقع كامل", desc: "موقع احترافي لعلامتك التجارية يرفع مصداقيتك", badge: "الأكثر طلباً", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-              { icon: Zap, title: "حسابات إعلانية جاهزة", desc: "حسابات Facebook و TikTok مفعلة وجاهزة للإطلاق", badge: "POPULAR", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-              { icon: Megaphone, title: "إدارة إعلانات مدفوعة", desc: "إدارة كاملة لحملاتك على Facebook و TikTok", badge: "جديد", badgeClass: "bg-accent/20 text-accent border-accent/30" },
-              { icon: UserCheck, title: "Influencer Marketing", desc: "حملات مع مؤثرين لزيادة الوعي والمبيعات", badge: "VIP", badgeClass: "bg-accent/20 text-accent border-accent/30" },
-              { icon: Image, title: "باقة Creatives جاهزة", desc: "تصاميم إعلانية احترافية لزيادة معدل التحويل", badge: "الأكثر طلباً", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-            ].map((svc) => (
-              <div
-                key={svc.title}
-                className="glass-card p-6 space-y-4 group hover:border-primary/40 transition-all duration-300"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <svc.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${svc.badgeClass}`}>
-                    {svc.badge}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{svc.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{svc.desc}</p>
-                <Link
-                  to="/services"
-                  className="inline-flex items-center gap-2 w-full justify-center py-2.5 rounded-lg border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/10 transition-colors"
-                >
-                  اطلب الآن
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 text-center space-y-4">
-            <p className="text-lg font-bold text-foreground">بغيت تربح أكثر وبسرعة؟</p>
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl gradient-teal text-primary-foreground font-bold hover:opacity-90 transition-opacity teal-glow"
-            >
-              <Sparkles className="h-5 w-5" />
-              شوف جميع الخدمات
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* FAQ */}
       <section className="py-16 lg:py-20 bg-secondary/20">
