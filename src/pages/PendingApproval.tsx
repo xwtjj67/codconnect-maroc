@@ -1,14 +1,12 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
-import { useAuth } from "@/contexts/AuthContext";
 import { Clock, MessageCircle, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const openWhatsAppActivation = () => {
   window.open(`https://wa.me/212778133038?text=${encodeURIComponent("أنا سجلت في المنصة وأريد تفعيل حسابي")}`, "_blank");
 };
 
 const PendingApproval = () => {
-  const { user, logout } = useAuth();
-
   return (
     <PublicLayout>
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
@@ -20,7 +18,7 @@ const PendingApproval = () => {
           <div className="space-y-3">
             <h1 className="text-2xl font-bold text-foreground">في انتظار التفعيل</h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              مرحبًا <span className="text-foreground font-medium">{user?.name}</span>، تم إنشاء حسابك بنجاح.
+              تم إنشاء حسابك بنجاح.
               <br />
               يرجى التواصل معنا عبر واتساب لتفعيل حسابك.
             </p>
@@ -55,12 +53,12 @@ const PendingApproval = () => {
             تواصل عبر واتساب للتفعيل
           </button>
 
-          <button
-            onClick={logout}
-            className="block mx-auto text-sm text-muted-foreground hover:text-foreground transition-colors"
+          <Link
+            to="/login"
+            className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            تسجيل الخروج
-          </button>
+            العودة لتسجيل الدخول
+          </Link>
         </div>
       </div>
     </PublicLayout>

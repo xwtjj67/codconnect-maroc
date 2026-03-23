@@ -68,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount, check if we have a token and load user
   useEffect(() => {
     const init = async () => {
       if (!api.isLoggedIn()) {
@@ -98,15 +97,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (identifier: string, password: string): Promise<AppUser> => {
-    try {
-      const { user: userData } = await api.login(identifier, password);
-      const appUser = mapUserData(userData);
-      setUser(appUser);
-      return appUser;
-    } catch (err: any) {
-      // Re-throw with status info for pending/suspended handling
-      throw err;
-    }
+    // This will throw if status is pending/suspended (403)
+    const { user: userData } = await api.login(identifier, password);
+    const appUser = mapUserData(userData);
+    setUser(appUser);
+    return appUser;
   };
 
   const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
@@ -119,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role: "affiliate",
       username: data.username,
     });
+    // No token returned, no auto-login — user goes to pending page
   };
 
   const signupMerchant = async (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => {
@@ -132,6 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       username: data.username,
       store_name: data.storeName,
     });
+    // No token returned, no auto-login
   };
 
   const logout = async () => {

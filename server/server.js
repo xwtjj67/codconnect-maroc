@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: { error: "Too many requests, please try again later." },
 });
@@ -42,6 +42,7 @@ const orderRoutes = require("./routes/orders");
 const trainingRoutes = require("./routes/training");
 const serviceRoutes = require("./routes/services");
 const distributionRoutes = require("./routes/distribution");
+const adminRoutes = require("./routes/admin");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -50,15 +51,11 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/training", trainingRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/distribution", distributionRoutes);
+app.use("/api/stats", adminRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
-
-// Test endpoint
-app.get("/api/auth/test", (req, res) => {
-  res.json({ message: "API works", version: "1.0.0" });
 });
 
 // 404 handler

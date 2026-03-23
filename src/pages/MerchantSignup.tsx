@@ -2,7 +2,6 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { distributeToSheet } from "@/services/sheetsDistribution";
 import { UserPlus, Mail, Phone, MapPin, Lock, Eye, EyeOff, Store } from "lucide-react";
 import PasswordStrengthIndicator, { isPasswordStrong } from "@/components/auth/PasswordStrengthIndicator";
 import UsernameField from "@/components/auth/UsernameField";
@@ -44,9 +43,13 @@ const MerchantSignup = () => {
     setLoading(true);
     try {
       await signupMerchant({ name: form.name, username: form.username, email: form.email, storeName: form.storeName, phone: form.phone, city: form.city, password: form.password });
-      await distributeToSheet({ name: form.name, phone: form.phone, role: "product_owner", plan: "Basic (350DH)", date: new Date().toISOString() });
+      // Google Sheets distribution is now handled server-side in signup
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
+      if (err.message?.includes("انتظار التفعيل")) {
+        navigate("/pending-approval", { replace: true });
+        return;
+      }
       setError(err.message || "فشل إنشاء الحساب");
     } finally {
       setLoading(false);

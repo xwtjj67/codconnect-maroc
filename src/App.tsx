@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { lazy, Suspense } from "react";
 
-// Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
 const AffiliateSignup = lazy(() => import("./pages/AffiliateSignup"));
@@ -57,18 +56,6 @@ const DashboardRedirect = () => {
   return <Navigate to={user?.role === "product_owner" ? "/merchant/dashboard" : "/affiliate/dashboard"} replace />;
 };
 
-const PendingRoute = () => {
-  const { isAuthenticated, isPending, isLoading } = useAuth();
-  if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!isPending) return <Navigate to="/dashboard" replace />;
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <PendingApproval />
-    </Suspense>
-  );
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -85,7 +72,8 @@ const App = () => (
               <Route path="/merchant-signup" element={<MerchantSignup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/pending-approval" element={<PendingRoute />} />
+              {/* Pending page is PUBLIC — no auth required */}
+              <Route path="/pending-approval" element={<PendingApproval />} />
               <Route path="/support" element={<Support />} />
               <Route path="/services" element={<Services />} />
               <Route path="/dashboard" element={<DashboardRedirect />} />

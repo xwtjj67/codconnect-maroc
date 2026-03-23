@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 60_000; // 1 minute
+const LOCKOUT_MS = 60_000;
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
@@ -28,7 +28,6 @@ const Login = () => {
       return;
     }
 
-    // Rate limiting
     if (Date.now() < lockoutUntilRef.current) {
       const remaining = Math.ceil((lockoutUntilRef.current - Date.now()) / 1000);
       setError(`تم تجاوز عدد المحاولات. حاول بعد ${remaining} ثانية`);
@@ -51,9 +50,17 @@ const Login = () => {
       }
     } catch (err: any) {
       const msg = err.message || "فشل تسجيل الدخول";
-      // Handle pending status — redirect to pending page
+      // Handle pending/suspended — always redirect to pending page
       if (msg.includes("انتظار التفعيل")) {
         navigate("/pending-approval", { replace: true });
+        return;
+      }
+      if (msg.includes("موقوف")) {
+        setError("حسابك موقوف، تواصل مع الدعم عبر واتساب");
+        return;
+      }
+      if (msg.includes("رفض")) {
+        setError("تم رفض حسابك، تواصل مع الدعم عبر واتساب");
         return;
       }
       attemptsRef.current += 1;
