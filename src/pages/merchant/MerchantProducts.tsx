@@ -81,16 +81,16 @@ const MerchantProducts = () => {
         {showForm && (
           <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
             <h2 className="font-semibold">إضافة منتج جديد</h2>
-            <MultiImageUpload images={images} onChange={setImages} maxImages={10} disabled={submitting} />
+            <MultiImageUpload images={images} onChange={setImages} maxImages={5} disabled={submitting} />
             <div className="space-y-1"><label className="text-sm font-medium">فيديو المنتج (اختياري)</label><div className="flex items-center gap-3"><button type="button" onClick={() => document.getElementById("video-input")?.click()} disabled={submitting} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50"><Video className="h-4 w-4" />{videoFile ? videoFile.name : "اختر فيديو"}</button>{videoFile && <button type="button" onClick={() => setVideoFile(null)} className="text-xs text-destructive hover:underline">حذف</button>}</div><input id="video-input" type="file" accept="video/*" className="hidden" disabled={submitting} onChange={e => { if (e.target.files?.[0]) setVideoFile(e.target.files[0]); e.target.value = ""; }} /></div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1"><label className="text-sm font-medium">اسم المنتج *</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" /></div>
               <div className="space-y-1"><label className="text-sm font-medium">سعر التكلفة (DH) *</label><input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} required min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" /></div>
               <div className="space-y-1"><label className="text-sm font-medium">المخزون</label><input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" /></div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">الفئة *</label>
+                <label className="text-sm font-medium">الفئة</label>
                 <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                  <option value="">اختر الفئة</option>
+                  <option value="">اختر الفئة (اختياري)</option>
                   {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>

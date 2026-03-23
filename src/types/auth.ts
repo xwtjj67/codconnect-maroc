@@ -20,14 +20,14 @@ export interface SellerPlan {
 }
 
 export const PLANS: Record<PlanType, UserPlan> = {
-  standard: { type: "standard", commission: 10, maxProducts: 3, label: "Standard", price: 70 },
-  premium: { type: "premium", commission: 20, maxProducts: 5, label: "Premium", price: 200 },
+  standard: { type: "standard", commission: 10, maxProducts: 5, label: "Standard", price: 70 },
+  premium: { type: "premium", commission: 20, maxProducts: 10, label: "Premium", price: 200 },
   vip: { type: "vip", commission: 30, maxProducts: -1, label: "VIP", price: 350 },
 };
 
 export const SELLER_PLANS: Record<SellerPlanType, SellerPlan> = {
-  basic: { type: "basic", maxProducts: 3, label: "Basic", price: 350 },
-  pro: { type: "pro", maxProducts: 10, label: "Pro", price: 500 },
+  basic: { type: "basic", maxProducts: -1, label: "Basic", price: 350 },
+  pro: { type: "pro", maxProducts: -1, label: "Pro", price: 500 },
 };
 
 export interface User {

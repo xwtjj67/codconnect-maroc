@@ -17,7 +17,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Support = lazy(() => import("./pages/Support"));
-const Services = lazy(() => import("./pages/Services"));
+const DashboardServices = lazy(() => import("./pages/DashboardServices"));
 
 const MerchantDashboard = lazy(() => import("./pages/merchant/MerchantDashboard"));
 const MerchantProducts = lazy(() => import("./pages/merchant/MerchantProducts"));
@@ -72,11 +72,13 @@ const App = () => (
               <Route path="/merchant-signup" element={<MerchantSignup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              {/* Pending page is PUBLIC — no auth required */}
               <Route path="/pending-approval" element={<PendingApproval />} />
               <Route path="/support" element={<Support />} />
-              <Route path="/services" element={<Services />} />
               <Route path="/dashboard" element={<DashboardRedirect />} />
+              {/* Redirect old /services to dashboard */}
+              <Route path="/services" element={<Navigate to="/dashboard/services" replace />} />
+
+              <Route path="/dashboard/services" element={<ProtectedRoute><DashboardServices /></ProtectedRoute>} />
 
               <Route path="/merchant/dashboard" element={<ProtectedRoute requiredRole="product_owner"><MerchantDashboard /></ProtectedRoute>} />
               <Route path="/merchant/products" element={<ProtectedRoute requiredRole="product_owner"><MerchantProducts /></ProtectedRoute>} />

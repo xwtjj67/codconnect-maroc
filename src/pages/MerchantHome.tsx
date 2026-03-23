@@ -4,8 +4,7 @@ import {
   Package, BarChart3, Users, ShieldCheck, Zap, Headphones,
   TrendingUp, MessageCircle, Crown, Rocket, Star,
   HandCoins, Truck, LogIn, Store, Settings, Layers,
-  ShoppingCart, CheckCircle, Warehouse, Globe, Megaphone,
-  Image, Sparkles, UserCheck,
+  ShoppingCart, CheckCircle, Warehouse,
 } from "lucide-react";
 
 const openWhatsApp = (text: string) => {
@@ -85,9 +84,7 @@ const MerchantHome = () => {
       <section className="py-16 lg:py-24 bg-secondary/30">
         <div className="container">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">كيف يعمل النظام؟</h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            نظام بسيط ومرن يناسب موردي المنتجات
-          </p>
+          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">نظام بسيط ومرن يناسب موردي المنتجات</p>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
               { step: "1", title: "وفر المنتج", desc: "أضف منتجاتك وحدد سعر التكلفة الخاص بك", icon: Package },
@@ -135,74 +132,25 @@ const MerchantHome = () => {
         <div className="container relative">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">اختر الباقة المناسبة لك</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              سواء كنت تريد متجرك الخاص أو شراكة كاملة، لدينا ما يناسبك
-            </p>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">سواء كنت تريد متجرك الخاص أو شراكة كاملة، لدينا ما يناسبك</p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto items-stretch">
             {sellerPlans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-2xl p-[1px] transition-transform duration-300 hover:scale-[1.03] ${
-                  plan.highlighted
-                    ? "bg-gradient-to-b from-accent via-gold to-accent shadow-[0_0_50px_rgba(202,158,60,0.3)]"
-                    : "bg-border/50"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-bold bg-accent text-accent-foreground">
-                      <Crown className="h-3 w-3" />
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`flex flex-col flex-1 rounded-2xl p-8 space-y-6 ${
-                  plan.highlighted ? "bg-card" : "bg-card/80"
-                }`}>
+              <div key={plan.name} className={`relative flex flex-col rounded-2xl p-[1px] transition-transform duration-300 hover:scale-[1.03] ${plan.highlighted ? "bg-gradient-to-b from-accent via-gold to-accent shadow-[0_0_50px_rgba(202,158,60,0.3)]" : "bg-border/50"}`}>
+                {plan.badge && (<div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10"><span className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-bold bg-accent text-accent-foreground"><Crown className="h-3 w-3" />{plan.badge}</span></div>)}
+                <div className={`flex flex-col flex-1 rounded-2xl p-8 space-y-6 ${plan.highlighted ? "bg-card" : "bg-card/80"}`}>
                   <div className="text-center space-y-2">
-                    <h3 className={`text-2xl font-bold ${plan.highlighted ? "text-accent" : "text-foreground"}`}>
-                      {plan.name}
-                    </h3>
+                    <h3 className={`text-2xl font-bold ${plan.highlighted ? "text-accent" : "text-foreground"}`}>{plan.name}</h3>
                     <p className="text-sm text-muted-foreground">{plan.subtitle}</p>
                     <div className="space-y-1">
-                      {plan.price ? (
-                        <>
-                          <div className="flex items-baseline justify-center gap-1">
-                            <span className="text-4xl font-extrabold text-foreground">{plan.price}</span>
-                            <span className="text-muted-foreground text-sm">{plan.priceLabel}</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-lg font-semibold text-accent">{plan.priceLabel}</p>
-                          <p className="text-xs text-muted-foreground">يتطلب موافقة</p>
-                        </>
-                      )}
+                      {plan.price ? (<div className="flex items-baseline justify-center gap-1"><span className="text-4xl font-extrabold text-foreground">{plan.price}</span><span className="text-muted-foreground text-sm">{plan.priceLabel}</span></div>) : (<><p className="text-lg font-semibold text-accent">{plan.priceLabel}</p><p className="text-xs text-muted-foreground">يتطلب موافقة</p></>)}
                     </div>
                   </div>
-
                   <ul className="space-y-3 flex-1">
-                    {plan.features.map((f, i) => (
-                      <li key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                        <f.icon className={`h-4 w-4 shrink-0 ${plan.highlighted ? "text-accent" : "text-accent/70"}`} />
-                        {f.text}
-                      </li>
-                    ))}
+                    {plan.features.map((f, i) => (<li key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground"><f.icon className={`h-4 w-4 shrink-0 ${plan.highlighted ? "text-accent" : "text-accent/70"}`} />{f.text}</li>))}
                   </ul>
-
-                  <button
-                    onClick={() => openWhatsApp(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${plan.name}.`)}
-                    className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${
-                      plan.highlighted
-                        ? "bg-accent text-accent-foreground shadow-[0_0_20px_rgba(202,158,60,0.3)] hover:opacity-90"
-                        : "border-2 border-accent/30 text-accent hover:bg-accent/10"
-                    }`}
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    {plan.cta}
+                  <button onClick={() => openWhatsApp(`أنا مهتم بالاشتراك كمورد منتجات. أريد البدء بخطة ${plan.name}.`)} className={`flex items-center justify-center gap-2 text-center py-3 rounded-xl font-semibold transition-all duration-300 ${plan.highlighted ? "bg-accent text-accent-foreground shadow-[0_0_20px_rgba(202,158,60,0.3)] hover:opacity-90" : "border-2 border-accent/30 text-accent hover:bg-accent/10"}`}>
+                    <MessageCircle className="h-4 w-4" />{plan.cta}
                   </button>
                 </div>
               </div>
@@ -211,69 +159,14 @@ const MerchantHome = () => {
         </div>
       </section>
 
-      {/* Services Upsell */}
-      <section className="py-16 lg:py-24 relative overflow-hidden">
-        <div className="absolute top-0 right-1/3 w-[500px] h-[500px] bg-accent/5 rounded-full blur-3xl" />
-        <div className="container relative">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">خدمات إضافية لرفع أرباحك 🚀</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              طوّر نشاطك بسرعة مع خدمات احترافية جاهزة — من تحسين التسعير إلى إدارة كاملة
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {[
-              { icon: Globe, title: "إنشاء موقع كامل", desc: "موقع احترافي لعلامتك التجارية يرفع مصداقيتك", badge: "الأكثر طلباً", badgeClass: "bg-accent/20 text-accent border-accent/30" },
-              { icon: Zap, title: "حسابات إعلانية جاهزة", desc: "حسابات Facebook و TikTok مفعلة وجاهزة للإطلاق", badge: "POPULAR", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-              { icon: Megaphone, title: "إدارة إعلانات مدفوعة", desc: "إدارة كاملة لحملاتك على Facebook و TikTok", badge: "جديد", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-              { icon: UserCheck, title: "Influencer Marketing", desc: "حملات مع مؤثرين لزيادة الوعي والمبيعات", badge: "VIP", badgeClass: "bg-accent/20 text-accent border-accent/30" },
-              { icon: Image, title: "باقة Creatives جاهزة", desc: "تصاميم إعلانية احترافية لزيادة معدل التحويل", badge: "الأكثر طلباً", badgeClass: "bg-primary/20 text-primary border-primary/30" },
-            ].map((svc) => (
-              <div key={svc.title} className="glass-card p-6 space-y-4 group hover:border-accent/40 transition-all duration-300">
-                <div className="flex items-start justify-between">
-                  <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                    <svc.icon className="h-5 w-5 text-accent" />
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${svc.badgeClass}`}>
-                    {svc.badge}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-foreground group-hover:text-accent transition-colors">{svc.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{svc.desc}</p>
-                <Link
-                  to="/services"
-                  className="inline-flex items-center gap-2 w-full justify-center py-2.5 rounded-lg border border-accent/30 text-accent text-sm font-semibold hover:bg-accent/10 transition-colors"
-                >
-                  اطلب الآن
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 text-center space-y-4">
-            <p className="text-lg font-bold text-foreground">بغيت تبيع أكثر وبسرعة؟</p>
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(202,158,60,0.3)]"
-            >
-              <Sparkles className="h-5 w-5" />
-              شوف جميع الخدمات
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* CTA */}
       <section className="py-20 lg:py-28">
         <div className="container text-center space-y-8">
           <div className="max-w-2xl mx-auto glass-card p-12 space-y-6 border-accent/30 shadow-[0_0_40px_rgba(202,158,60,0.15)]">
             <h2 className="text-3xl md:text-4xl font-bold">جاهز تبدأ البيع؟</h2>
             <p className="text-muted-foreground">تواصل معنا عبر واتساب وابدأ اليوم</p>
-            <button
-              onClick={() => openWhatsApp("مرحبا، أريد الاشتراك كمورد منتجات")}
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-accent text-accent-foreground font-semibold text-lg hover:opacity-90 transition-opacity"
-            >
-              <MessageCircle className="h-5 w-5" />
-              تواصل عبر واتساب
+            <button onClick={() => openWhatsApp("مرحبا، أريد الاشتراك كمورد منتجات")} className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-accent text-accent-foreground font-semibold text-lg hover:opacity-90 transition-opacity">
+              <MessageCircle className="h-5 w-5" />تواصل عبر واتساب
             </button>
           </div>
         </div>

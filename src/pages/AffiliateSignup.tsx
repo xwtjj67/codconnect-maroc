@@ -6,17 +6,8 @@ import { UserPlus, Mail, Phone, MapPin, Lock, Eye, EyeOff } from "lucide-react";
 import PasswordStrengthIndicator, { isPasswordStrong } from "@/components/auth/PasswordStrengthIndicator";
 import UsernameField from "@/components/auth/UsernameField";
 
-const CATEGORIES = [
-  { value: "cosmetics", label: "تجميل" },
-  { value: "electronics", label: "الكترونيات" },
-  { value: "fashion", label: "ملابس" },
-  { value: "home", label: "منزل" },
-  { value: "fitness", label: "رياضة" },
-  { value: "other", label: "أخرى" },
-];
-
 const AffiliateSignup = () => {
-  const [form, setForm] = useState({ name: "", username: "", email: "", phone: "", city: "", password: "", confirmPassword: "", preferredCategory: "" });
+  const [form, setForm] = useState({ name: "", username: "", email: "", phone: "", city: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -30,10 +21,6 @@ const AffiliateSignup = () => {
 
     if (!form.name.trim() || !form.username.trim() || !form.email.trim() || !form.phone.trim() || !form.city.trim() || !form.password.trim()) {
       setError("يرجى ملء جميع الحقول");
-      return;
-    }
-    if (!form.preferredCategory) {
-      setError("يرجى اختيار الفئة المفضلة");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
@@ -55,7 +42,7 @@ const AffiliateSignup = () => {
 
     setLoading(true);
     try {
-      await signupAffiliate({ name: form.name, username: form.username, email: form.email, phone: form.phone, city: form.city, password: form.password, preferredCategory: form.preferredCategory });
+      await signupAffiliate({ name: form.name, username: form.username, email: form.email, phone: form.phone, city: form.city, password: form.password });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       if (err.message?.includes("انتظار التفعيل")) {
@@ -107,19 +94,6 @@ const AffiliateSignup = () => {
             ))}
 
             <UsernameField name={form.name} value={form.username} onChange={(v) => setForm({ ...form, username: v })} />
-
-            {/* Category Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">الفئة المفضلة *</label>
-              <select
-                value={form.preferredCategory}
-                onChange={(e) => setForm({ ...form, preferredCategory: e.target.value })}
-                className="w-full h-11 px-4 rounded-lg bg-secondary/50 border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              >
-                <option value="">اختر الفئة التي تريد تسويقها</option>
-                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">كلمة السر</label>
