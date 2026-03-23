@@ -30,7 +30,7 @@ echo "✅ تم التثبيت"
 
 echo ""
 echo "🔨 [3/6] بناء الواجهة الأمامية..."
-npm run build
+VITE_API_URL=https://codconnect.ma/api npm run build
 echo "✅ تم البناء → dist/"
 
 # 3. Backend update
