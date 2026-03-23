@@ -52,6 +52,38 @@ export type Database = {
           },
         ]
       }
+      affiliate_product_access: {
+        Row: {
+          affiliate_id: string
+          created_at: string
+          id: string
+          is_authorized: boolean
+          product_id: string
+        }
+        Insert: {
+          affiliate_id: string
+          created_at?: string
+          id?: string
+          is_authorized?: boolean
+          product_id: string
+        }
+        Update: {
+          affiliate_id?: string
+          created_at?: string
+          id?: string
+          is_authorized?: boolean
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_product_access_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           action: string
@@ -167,6 +199,30 @@ export type Database = {
           current_index?: number
           id?: string
           total_sheets?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      merchant_limits: {
+        Row: {
+          approved_product_limit: number
+          created_at: string
+          id: string
+          merchant_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_product_limit?: number
+          created_at?: string
+          id?: string
+          merchant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_product_limit?: number
+          created_at?: string
+          id?: string
+          merchant_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -309,6 +365,7 @@ export type Database = {
           id: string
           name: string
           phone: string
+          preferred_category: string | null
           store_name: string | null
           updated_at: string
           username: string | null
@@ -320,6 +377,7 @@ export type Database = {
           id: string
           name: string
           phone: string
+          preferred_category?: string | null
           store_name?: string | null
           updated_at?: string
           username?: string | null
@@ -331,6 +389,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string
+          preferred_category?: string | null
           store_name?: string | null
           updated_at?: string
           username?: string | null
