@@ -100,11 +100,11 @@ class ApiClient {
     store_name?: string;
     whatsapp?: string;
   }) {
-    const result = await this.request<{ token: string; user: any }>("/auth/signup", {
+    // Signup does NOT return a token — user goes to pending page
+    const result = await this.request<{ message: string; status: string; user: any }>("/auth/signup", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    this.setToken(result.token);
     return result;
   }
 
