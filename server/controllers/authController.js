@@ -76,17 +76,20 @@ exports.signup = async (req, res) => {
     const userResult = await db.query(
       `INSERT INTO users (email, password_hash, username, name, phone, city, store_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, email, username, name`,
+       RETURNING *`,
       [email, passwordHash, username, name, phone || null, city || null, store_name || null]
     );
+
+    console.log("📋 Inserted user:", JSON.stringify(userResult.rows[0], null, 2));
 
     const userId = userResult.rows[0].id;
 
     // Insert role
-    await db.query(
-      "INSERT INTO user_roles (user_id, role) VALUES ($1, $2)",
+    const roleResult = await db.query(
+      "INSERT INTO user_roles (user_id, role) VALUES ($1, $2) RETURNING *",
       [userId, role]
     );
+    console.log("📋 Inserted role:", JSON.stringify(roleResult.rows[0]));
 
     // Insert status (pending)
     await db.query(
