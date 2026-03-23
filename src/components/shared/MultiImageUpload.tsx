@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import { Upload, X, GripVertical, Image as ImageIcon } from "lucide-react";
+import { Upload, X, GripVertical, Crop } from "lucide-react";
+import ImageCropper from "./ImageCropper";
 
 interface MultiImageUploadProps {
   images: { file: File; preview: string }[];
@@ -13,19 +14,73 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const addFiles = useCallback(
-    (files: FileList | File[]) => {
-      const newImages = [...images];
-      const fileArr = Array.from(files);
-      for (const file of fileArr) {
-        if (newImages.length >= maxImages) break;
-        if (!file.type.startsWith("image/")) continue;
-        newImages.push({ file, preview: URL.createObjectURL(file) });
-      }
-      onChange(newImages);
-    },
-    [images, maxImages, onChange]
-  );
+  // Cropping state
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFileIndex, setCropFileIndex] = useState(0);
+
+  // Re-crop existing image
+  const [reCropIndex, setReCropIndex] = useState<number | null>(null);
+  const [reCropSrc, setReCropSrc] = useState<string | null>(null);
+
+  const startCropFlow = useCallback((files: FileList | File[]) => {
+    const arr = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (arr.length === 0) return;
+    const remaining = maxImages - images.length;
+    const toProcess = arr.slice(0, remaining);
+    if (toProcess.length === 0) return;
+    setPendingFiles(toProcess);
+    setCropFileIndex(0);
+    setCropSrc(URL.createObjectURL(toProcess[0]));
+  }, [images.length, maxImages]);
+
+  const handleCropComplete = useCallback((blob: Blob) => {
+    const file = new File([blob], pendingFiles[cropFileIndex]?.name || "cropped.jpg", { type: "image/jpeg" });
+    const preview = URL.createObjectURL(blob);
+    const newImages = [...images, { file, preview }];
+    onChange(newImages);
+
+    // Clean old src
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+
+    const nextIdx = cropFileIndex + 1;
+    if (nextIdx < pendingFiles.length && newImages.length < maxImages) {
+      setCropFileIndex(nextIdx);
+      setCropSrc(URL.createObjectURL(pendingFiles[nextIdx]));
+    } else {
+      setCropSrc(null);
+      setPendingFiles([]);
+      setCropFileIndex(0);
+    }
+  }, [pendingFiles, cropFileIndex, images, maxImages, onChange, cropSrc]);
+
+  const handleCropCancel = useCallback(() => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    // Skip this file, continue to next
+    const nextIdx = cropFileIndex + 1;
+    if (nextIdx < pendingFiles.length && images.length < maxImages) {
+      setCropFileIndex(nextIdx);
+      setCropSrc(URL.createObjectURL(pendingFiles[nextIdx]));
+    } else {
+      setCropSrc(null);
+      setPendingFiles([]);
+      setCropFileIndex(0);
+    }
+  }, [cropSrc, cropFileIndex, pendingFiles, images.length, maxImages]);
+
+  // Re-crop existing
+  const handleReCropComplete = useCallback((blob: Blob) => {
+    if (reCropIndex === null) return;
+    const file = new File([blob], images[reCropIndex]?.file.name || "cropped.jpg", { type: "image/jpeg" });
+    const preview = URL.createObjectURL(blob);
+    const updated = [...images];
+    URL.revokeObjectURL(updated[reCropIndex].preview);
+    updated[reCropIndex] = { file, preview };
+    onChange(updated);
+    if (reCropSrc) URL.revokeObjectURL(reCropSrc);
+    setReCropIndex(null);
+    setReCropSrc(null);
+  }, [reCropIndex, reCropSrc, images, onChange]);
 
   const removeImage = (index: number) => {
     const updated = [...images];
@@ -46,12 +101,11 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+      if (e.dataTransfer.files.length) startCropFlow(e.dataTransfer.files);
     },
-    [addFiles]
+    [startCropFlow]
   );
 
-  // Drag reorder
   const handleDragStart = (index: number) => setDragIndex(index);
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -70,7 +124,6 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
         صور المنتج * <span className="text-muted-foreground font-normal">({images.length}/{maxImages})</span>
       </label>
 
-      {/* Uploaded images grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {images.map((img, i) => (
@@ -92,6 +145,18 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
               )}
               {!disabled && (
                 <div className="absolute top-1 left-1 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const src = URL.createObjectURL(img.file);
+                      setReCropIndex(i);
+                      setReCropSrc(src);
+                    }}
+                    className="p-0.5 rounded-full bg-background/80 text-foreground hover:bg-background"
+                    title="قص"
+                  >
+                    <Crop className="h-3 w-3" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
@@ -118,7 +183,6 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
         </div>
       )}
 
-      {/* Upload area */}
       {images.length < maxImages && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -133,6 +197,7 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
           <p className="text-xs text-muted-foreground text-center px-2">
             اسحب الصور هنا أو انقر للاختيار (حتى {maxImages} صور)
           </p>
+          <p className="text-[10px] text-muted-foreground/70">سيتم قص كل صورة قبل الإضافة</p>
         </div>
       )}
 
@@ -144,10 +209,34 @@ const MultiImageUpload = ({ images, onChange, maxImages = 10, disabled }: MultiI
         className="hidden"
         disabled={disabled}
         onChange={(e) => {
-          if (e.target.files) addFiles(e.target.files);
+          if (e.target.files) startCropFlow(e.target.files);
           e.target.value = "";
         }}
       />
+
+      {/* New image crop dialog */}
+      {cropSrc && (
+        <ImageCropper
+          open={!!cropSrc}
+          imageSrc={cropSrc}
+          onClose={handleCropCancel}
+          onCropComplete={handleCropComplete}
+        />
+      )}
+
+      {/* Re-crop existing image dialog */}
+      {reCropSrc && reCropIndex !== null && (
+        <ImageCropper
+          open={!!reCropSrc}
+          imageSrc={reCropSrc}
+          onClose={() => {
+            if (reCropSrc) URL.revokeObjectURL(reCropSrc);
+            setReCropIndex(null);
+            setReCropSrc(null);
+          }}
+          onCropComplete={handleReCropComplete}
+        />
+      )}
     </div>
   );
 };
