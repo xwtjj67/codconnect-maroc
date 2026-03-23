@@ -1,25 +1,19 @@
-
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, RefreshCw, Headphones } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
 interface ServiceRequest {
-  id: string;
-  name: string;
-  phone: string;
-  role: string;
-  service_name: string;
-  status: "pending" | "contacted" | "closed";
-  created_at: string;
+  id: string; name: string; phone: string; role: string;
+  service_name: string; status: "pending" | "contacted" | "closed"; created_at: string;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -35,27 +29,21 @@ const AdminServices = () => {
 
   const fetchRequests = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) setRequests(data as unknown as ServiceRequest[]);
+    try {
+      const { requests: data } = await api.getAllServiceRequests();
+      setRequests(data as ServiceRequest[]);
+    } catch { }
     setLoading(false);
   };
 
   useEffect(() => { fetchRequests(); }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase
-      .from("service_requests")
-      .update({ status: status as any })
-      .eq("id", id);
-    if (error) {
-      toast({ title: "خطأ في تحديث الحالة", variant: "destructive" });
-    } else {
+    try {
+      await api.updateServiceStatus(id, status);
       toast({ title: "✅ تم تحديث الحالة" });
-      setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status: status as any } : r));
-    }
+      setRequests(prev => prev.map(r => r.id === id ? { ...r, status: status as any } : r));
+    } catch { toast({ title: "خطأ في تحديث الحالة", variant: "destructive" }); }
   };
 
   const openWhatsApp = (phone: string, serviceName: string) => {
@@ -72,51 +60,35 @@ const AdminServices = () => {
             <h1 className="text-2xl font-bold text-foreground">طلبات الخدمات</h1>
             <Badge variant="secondary">{requests.length}</Badge>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchRequests} className="gap-2">
-            <RefreshCw className="h-4 w-4" /> تحديث
-          </Button>
+          <Button variant="outline" size="sm" onClick={fetchRequests} className="gap-2"><RefreshCw className="h-4 w-4" /> تحديث</Button>
         </div>
-
         <Card className="bg-card/80 backdrop-blur-sm border-border/50">
           <CardContent className="p-0">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
+              <div className="flex items-center justify-center py-16"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
             ) : requests.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground">لا توجد طلبات حالياً</div>
             ) : (
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">الاسم</TableHead>
-                    <TableHead className="text-right">الهاتف</TableHead>
-                    <TableHead className="text-right">الدور</TableHead>
-                    <TableHead className="text-right">الخدمة</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow>
+                  <TableHead className="text-right">الاسم</TableHead><TableHead className="text-right">الهاتف</TableHead>
+                  <TableHead className="text-right">الدور</TableHead><TableHead className="text-right">الخدمة</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">التاريخ</TableHead>
+                  <TableHead className="text-right">إجراءات</TableHead>
+                </TableRow></TableHeader>
                 <TableBody>
-                  {requests.map((req) => {
+                  {requests.map(req => {
                     const sc = statusConfig[req.status] || statusConfig.pending;
                     return (
                       <TableRow key={req.id}>
                         <TableCell className="font-medium">{req.name}</TableCell>
                         <TableCell dir="ltr" className="text-left">{req.phone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {req.role === "affiliate" ? "مسوق" : "مورد"}
-                          </Badge>
-                        </TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">{req.role === "affiliate" ? "مسوق" : "مورد"}</Badge></TableCell>
                         <TableCell className="max-w-[200px] truncate">{req.service_name}</TableCell>
                         <TableCell>
                           <Select value={req.status} onValueChange={(v) => updateStatus(req.id, v)}>
                             <SelectTrigger className="w-[140px] h-8">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${sc.className}`}>
-                                {sc.label}
-                              </span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${sc.className}`}>{sc.label}</span>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pending">قيد الانتظار</SelectItem>
@@ -125,19 +97,8 @@ const AdminServices = () => {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {format(new Date(req.created_at), "dd MMM yyyy HH:mm", { locale: ar })}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openWhatsApp(req.phone, req.service_name)}
-                            title="تواصل عبر واتساب"
-                          >
-                            <MessageCircle className="h-4 w-4 text-primary" />
-                          </Button>
-                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">{format(new Date(req.created_at), "dd MMM yyyy HH:mm", { locale: ar })}</TableCell>
+                        <TableCell><Button variant="ghost" size="icon" onClick={() => openWhatsApp(req.phone, req.service_name)}><MessageCircle className="h-4 w-4 text-primary" /></Button></TableCell>
                       </TableRow>
                     );
                   })}
