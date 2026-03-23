@@ -1,6 +1,6 @@
 /**
  * Centralized round-robin distribution system.
- * Calls the backend API to distribute leads.
+ * Calls the backend API to distribute leads to Google Sheets.
  */
 
 import api from "@/services/api";
@@ -15,8 +15,10 @@ export interface RegistrationData {
 
 export async function distributeToSheet(data: RegistrationData): Promise<void> {
   try {
-    await api.distribute(data);
-  } catch {
+    const result = await api.distribute(data);
+    console.log("📤 Distribution result:", result);
+  } catch (err) {
+    console.error("❌ Distribution failed (non-blocking):", err);
     // Don't block signup if distribution fails
   }
 }
