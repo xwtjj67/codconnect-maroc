@@ -55,7 +55,7 @@ const AffiliateSignup = () => {
 
     setLoading(true);
     try {
-      await signupAffiliate({ name: form.name, username: form.username, email: form.email, phone: form.phone, city: form.city, password: form.password });
+      await signupAffiliate({ name: form.name, username: form.username, email: form.email, phone: form.phone, city: form.city, password: form.password, preferredCategory: form.preferredCategory });
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
       if (err.message?.includes("انتظار التفعيل")) {
