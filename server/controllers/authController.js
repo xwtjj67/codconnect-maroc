@@ -3,6 +3,91 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const { JWT_SECRET } = require("../middleware/auth");
 
+// Google Apps Script Web App URLs — 7 agent sheets
+const SHEET_URLS = [
+  "https://script.google.com/macros/s/AKfycbzjqW1-8Rn0kihkizekjQnht8tjZhZlzXzo94IlYv_tj1ZhENZmJV7Zg55ikc8bnX1BHQ/exec",
+  "https://script.google.com/macros/s/AKfycbwccmkMCJLQz-8xlIoGp8Tzc0J973xE5DWRhC-Yg74kCEkVMml-bddWmyHv8ULuDPzU/exec",
+  "https://script.google.com/macros/s/AKfycbzVQPr_LsvBzfnMZrn3do4NgCQsyh0kVf-HUeJkXcEX5oWWT2IxddifpwnXNFFADDzzwg/exec",
+  "https://script.google.com/macros/s/AKfycbyxQTXmKr47_F8wXIfmH1lzS1k_Y6NFkIASUA0s7JCvhbki_hyp6qsyrsNzp-30EkLE/exec",
+  "https://script.google.com/macros/s/AKfycbyV04pu35s7ot3nsa-tVog2ds3Q6WeltTDdJA3-OjUDT7eOGMnv5V2mWdHaxK7nbHL8Hg/exec",
+  "https://script.google.com/macros/s/AKfycbx-40TpSpmGWfdobcsntAx0uUOYz___Z-N1rx2TG9AC3LxGfa2Yne3TuS2KyqaO7Le0/exec",
+  "https://script.google.com/macros/s/AKfycbzzMKI3oRziQbyZRKB1JyOpM8qo1mYYTpJB2F6PPq7KSWs6vGTjiKyPPqAYMCRhXOGcrw/exec",
+];
+
+// Distribute to Google Sheets (called internally after signup)
+async function distributeToSheet(userData) {
+  try {
+    // Get or create distribution state
+    let stateResult = await db.query("SELECT * FROM distribution_state LIMIT 1");
+    let state = stateResult.rows[0];
+
+    if (!state) {
+      await db.query("INSERT INTO distribution_state (current_index, total_sheets) VALUES (0, $1)", [SHEET_URLS.length]);
+      state = { current_index: 0, total_sheets: SHEET_URLS.length };
+    }
+
+    const sheetIndex = state.current_index;
+    const nextIndex = (sheetIndex + 1) % SHEET_URLS.length;
+
+    // Atomic update index
+    await db.query("UPDATE distribution_state SET current_index = $1, total_sheets = $2, updated_at = NOW()", [nextIndex, SHEET_URLS.length]);
+
+    const payload = {
+      name: userData.name,
+      phone: userData.phone || "",
+      role: userData.role,
+      plan: userData.plan || "Standard (70DH)",
+      date: new Date().toISOString(),
+    };
+
+    console.log(`📤 Sending to Sheet ${sheetIndex + 1}...`);
+
+    let success = true;
+    let errorMessage = null;
+
+    try {
+      const sheetRes = await fetch(SHEET_URLS[sheetIndex], {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      console.log(`✅ Sheet ${sheetIndex + 1} response: ${sheetRes.status}`);
+    } catch (err) {
+      console.error(`❌ Sheet ${sheetIndex + 1} failed:`, err.message);
+      success = false;
+      errorMessage = err.message;
+
+      // Fallback: try other sheets
+      for (let i = 1; i < SHEET_URLS.length; i++) {
+        const fallback = (sheetIndex + i) % SHEET_URLS.length;
+        try {
+          await fetch(SHEET_URLS[fallback], {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          console.log(`✅ Fallback Sheet ${fallback + 1} OK`);
+          success = true;
+          errorMessage = null;
+          break;
+        } catch (e) {
+          console.error(`❌ Fallback Sheet ${fallback + 1} failed`);
+        }
+      }
+    }
+
+    // Log distribution
+    await db.query(
+      "INSERT INTO distribution_logs (sheet_index, user_name, user_phone, user_role, success, error_message) VALUES ($1,$2,$3,$4,$5,$6)",
+      [sheetIndex, userData.name, userData.phone || "", userData.role, success, errorMessage]
+    );
+
+    console.log(`📊 Distribution complete: Sheet ${sheetIndex + 1}, success: ${success}`);
+  } catch (err) {
+    console.error("❌ Distribution error (non-blocking):", err.message);
+  }
+}
+
 // Generate unique username
 const generateUsername = async (name) => {
   let base = name
@@ -93,7 +178,7 @@ exports.signup = async (req, res) => {
       [email, passwordHash, username, name, phone || null, city || null, store_name || null]
     );
     const userId = userResult.rows[0].id;
-    console.log("📋 Inserted user:", userResult.rows[0].id, userResult.rows[0].email);
+    console.log("📋 Inserted user:", userId, email);
 
     // Insert role
     await db.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2)", [userId, role]);
@@ -101,16 +186,22 @@ exports.signup = async (req, res) => {
     // Insert status (pending)
     await db.query("INSERT INTO user_statuses (user_id, status) VALUES ($1, 'pending')", [userId]);
 
-    // Create default subscription (handle missing table gracefully)
+    // Create default subscription
     try {
-      await db.query("INSERT INTO subscriptions (user_id, plan) VALUES ($1, 'standard')", [userId]);
+      const planValue = role === "product_owner" ? null : "standard";
+      const sellerPlanValue = role === "product_owner" ? "basic" : null;
+      await db.query("INSERT INTO subscriptions (user_id, plan, seller_plan) VALUES ($1, $2, $3)", [userId, planValue, sellerPlanValue]);
     } catch (subErr) {
-      console.log("⚠️ Subscriptions table missing, skipping:", subErr.message);
+      console.log("⚠️ Subscriptions insert skipped:", subErr.message);
     }
 
     console.log(`✅ User created: ${username} (${role}) — status: pending`);
 
-    // Return user info WITHOUT token (no auto-login, must go to pending)
+    // Send to Google Sheets (non-blocking, after DB insert)
+    const sheetPlan = role === "product_owner" ? "Basic (350DH)" : "Standard (70DH)";
+    distributeToSheet({ name, phone: phone || "", role, plan: sheetPlan });
+
+    // Return user info WITHOUT token (no auto-login)
     res.status(201).json({
       message: "تم إنشاء حسابك بنجاح، في انتظار التفعيل",
       status: "pending",
@@ -156,18 +247,21 @@ exports.login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Check status BEFORE password
+    // Verify password FIRST
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    if (!validPassword) {
+      return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
+    }
+
+    // Check status AFTER password
     if (user.status === "pending") {
       return res.status(403).json({ error: "حسابك في انتظار التفعيل", status: "pending" });
     }
     if (user.status === "suspended") {
       return res.status(403).json({ error: "حسابك موقوف، تواصل مع الدعم", status: "suspended" });
     }
-
-    // Verify password
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
+    if (user.status === "rejected") {
+      return res.status(403).json({ error: "تم رفض حسابك، تواصل مع الدعم", status: "rejected" });
     }
 
     // Only active/approved users get a token
@@ -204,7 +298,7 @@ exports.me = async (req, res) => {
     const result = await db.query(
       `SELECT u.id, u.email, u.username, u.name, u.phone, u.city, u.store_name,
               ur.role, us.status,
-              s.plan, s.is_active as subscription_active
+              s.plan, s.seller_plan, s.is_active as subscription_active
        FROM users u
        LEFT JOIN user_roles ur ON ur.user_id = u.id
        LEFT JOIN user_statuses us ON us.user_id = u.id

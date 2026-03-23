@@ -10,6 +10,7 @@ DO $$ BEGIN CREATE TYPE user_status AS ENUM ('pending', 'approved', 'active', 's
 DO $$ BEGIN CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'rejected'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE TYPE plan_type AS ENUM ('standard', 'premium', 'vip'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE seller_plan_type AS ENUM ('basic', 'pro'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE TYPE visibility_level AS ENUM ('standard', 'premium', 'vip'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Users
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   plan plan_type DEFAULT 'standard',
+  seller_plan seller_plan_type,
   is_active BOOLEAN DEFAULT true,
   started_at TIMESTAMPTZ DEFAULT NOW(),
   expires_at TIMESTAMPTZ,
@@ -193,9 +195,13 @@ CREATE INDEX IF NOT EXISTS idx_orders_affiliate ON orders(affiliate_id);
 CREATE INDEX IF NOT EXISTS idx_orders_merchant ON orders(merchant_id);
 CREATE INDEX IF NOT EXISTS idx_training_published ON training_content(is_published);
 
--- Grant permissions to app user
-GRANT USAGE ON SCHEMA public TO codconnect_user;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO codconnect_user;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO codconnect_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO codconnect_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO codconnect_user;
+-- Grant permissions to app user (only if role exists)
+DO $$ BEGIN
+  GRANT USAGE ON SCHEMA public TO codconnect_user;
+  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO codconnect_user;
+  GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO codconnect_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO codconnect_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO codconnect_user;
+EXCEPTION WHEN undefined_object THEN
+  RAISE NOTICE 'codconnect_user role does not exist, skipping grants';
+END $$;

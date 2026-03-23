@@ -2,7 +2,6 @@ import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { distributeToSheet } from "@/services/sheetsDistribution";
 import { UserPlus, Mail, Phone, MapPin, Lock, Eye, EyeOff } from "lucide-react";
 import PasswordStrengthIndicator, { isPasswordStrong } from "@/components/auth/PasswordStrengthIndicator";
 import UsernameField from "@/components/auth/UsernameField";
@@ -44,9 +43,14 @@ const AffiliateSignup = () => {
     setLoading(true);
     try {
       await signupAffiliate({ name: form.name, username: form.username, email: form.email, phone: form.phone, city: form.city, password: form.password });
-      await distributeToSheet({ name: form.name, phone: form.phone, role: "affiliate", plan: "Standard (70DH)", date: new Date().toISOString() });
+      // Google Sheets distribution is now handled server-side in signup
       navigate("/pending-approval", { replace: true });
     } catch (err: any) {
+      // If pending status, redirect to pending page
+      if (err.message?.includes("انتظار التفعيل")) {
+        navigate("/pending-approval", { replace: true });
+        return;
+      }
       setError(err.message || "فشل إنشاء الحساب");
     } finally {
       setLoading(false);
@@ -91,10 +95,8 @@ const AffiliateSignup = () => {
               </div>
             ))}
 
-            {/* Username field */}
             <UsernameField name={form.name} value={form.username} onChange={(v) => setForm({ ...form, username: v })} />
 
-            {/* Password */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">كلمة السر</label>
               <div className="relative">
@@ -113,7 +115,6 @@ const AffiliateSignup = () => {
               <PasswordStrengthIndicator password={form.password} />
             </div>
 
-            {/* Confirm password */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">تأكيد كلمة السر</label>
               <div className="relative">
