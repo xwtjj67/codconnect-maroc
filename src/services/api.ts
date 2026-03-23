@@ -43,17 +43,28 @@ class ApiClient {
       headers["Authorization"] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (networkErr) {
+      console.error("❌ Network error:", networkErr);
+      throw new Error("تعذر الاتصال بالسيرفر. تحقق من اتصالك بالإنترنت");
+    }
 
     if (response.status === 401) {
       this.clearToken();
       throw new Error("غير مصرح");
     }
 
-    const data = await response.json();
+    let data: any;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("استجابة غير صالحة من السيرفر");
+    }
 
     if (!response.ok) {
       throw new Error(data.error || "حدث خطأ");

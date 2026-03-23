@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Instagram, Mail } from "lucide-react";
+import { MessageCircle, Instagram, Mail, Facebook } from "lucide-react";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
 const PublicHeader = () => {
@@ -38,6 +38,14 @@ const PublicFooter = () => {
             </button>
             <a href="https://instagram.com/codconnect_" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-teal-glow transition-colors">
               <Instagram className="h-5 w-5" />
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61584374087643" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-teal-glow transition-colors">
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a href="https://www.tiktok.com/@codconnect_" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-teal-glow transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.75a8.18 8.18 0 0 0 4.76 1.52V6.84a4.84 4.84 0 0 1-1-.15z"/>
+              </svg>
             </a>
             <a href="mailto:support@codconnect.ma" className="text-primary hover:text-teal-glow transition-colors">
               <Mail className="h-5 w-5" />
