@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return appUser;
   };
 
-  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string; preferredCategory?: string }) => {
+  const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
     await api.signup({
       name: data.name,
       email: data.email,
@@ -113,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password: data.password,
       role: "affiliate",
       username: data.username,
-      preferred_category: data.preferredCategory,
     });
   };
 
