@@ -1,3 +1,5 @@
+# Run with: docker-compose up -d --build  (old CLI)
+# Or:       docker compose up -d --build   (new plugin)
 version: "3.8"
 
 services:

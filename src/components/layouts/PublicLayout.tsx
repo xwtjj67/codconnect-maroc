@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Instagram, Mail } from "lucide-react";
+import { MessageCircle, Instagram, Mail, Facebook } from "lucide-react";
 import codconnectLogo from "@/assets/codconnect-logo.png";
 
 const PublicHeader = () => {
