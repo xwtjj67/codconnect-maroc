@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { User, Check, X, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 
 interface Props {
   name: string;
@@ -22,7 +22,6 @@ const UsernameField = ({ name, value, onChange }: Props) => {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [edited, setEdited] = useState(false);
 
-  // Auto-generate from name if not manually edited
   useEffect(() => {
     if (!edited && name) {
       const gen = generateUsername(name);
@@ -30,7 +29,6 @@ const UsernameField = ({ name, value, onChange }: Props) => {
     }
   }, [name, edited]);
 
-  // Check availability with debounce
   const checkAvailability = useCallback(async (username: string) => {
     if (!username || username.length < 3) {
       setAvailable(null);
@@ -38,8 +36,8 @@ const UsernameField = ({ name, value, onChange }: Props) => {
     }
     setChecking(true);
     try {
-      const { data, error } = await supabase.rpc("check_username_available", { desired_username: username });
-      if (!error) setAvailable(data as boolean);
+      const { available: isAvailable } = await api.checkUsername(username);
+      setAvailable(isAvailable);
     } catch {
       setAvailable(null);
     } finally {

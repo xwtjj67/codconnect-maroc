@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import api from "@/services/api";
 
 export type UserRole = "affiliate" | "product_owner" | "admin";
 export type UserStatus = "pending" | "approved" | "active" | "suspended";
@@ -24,11 +23,10 @@ export interface AppUser {
 
 interface AuthContextType {
   user: AppUser | null;
-  supabaseUser: SupabaseUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isPending: boolean;
-  login: (email: string, password: string) => Promise<AppUser>;
+  login: (identifier: string, password: string) => Promise<AppUser>;
   signupAffiliate: (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => Promise<void>;
   signupMerchant: (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -49,172 +47,91 @@ export const useAuth = () => {
 const planProductLimits: Record<PlanType, number> = { standard: 3, premium: 5, vip: -1 };
 const sellerPlanLimits: Record<SellerPlanType, number> = { basic: 3, pro: 10 };
 
-async function fetchAppUser(userId: string, email?: string): Promise<AppUser | null> {
-  try {
-    
-    // Add timeout to prevent hanging
-    const timeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
-      Promise.race([
-        promise,
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Query timeout")), ms))
-      ]);
-
-    const [profileRes, roleRes, statusRes] = await timeout(Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).single(),
-      supabase.from("user_roles").select("role").eq("user_id", userId).single(),
-      supabase.from("user_statuses").select("status").eq("user_id", userId).single(),
-    ]), 10000);
-
-
-    const profile = profileRes.data;
-    if (!profile) return null;
-
-    // Subscription query separately - may not exist for all users
-    const subQuery = supabase
-      .from("subscriptions")
-      .select("plan, seller_plan, is_active")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    
-    const { data: subData } = await timeout(Promise.resolve(subQuery), 10000);
-
-    
-
-    return {
-      id: userId,
-      email: email || "",
-      name: profile.name,
-      phone: profile.phone,
-      city: profile.city || "",
-      whatsapp: profile.whatsapp || "",
-      username: (profile as any).username || undefined,
-      storeName: profile.store_name || undefined,
-      role: (roleRes.data?.role as UserRole) || "affiliate",
-      status: (statusRes.data?.status as UserStatus) || "pending",
-      plan: (subData?.plan as PlanType) || undefined,
-      sellerPlan: (subData?.seller_plan as SellerPlanType) || undefined,
-    };
-  } catch {
-    return null;
-  }
+function mapUserData(u: any): AppUser {
+  return {
+    id: u.id,
+    email: u.email || "",
+    name: u.name || "",
+    phone: u.phone || "",
+    city: u.city || "",
+    whatsapp: u.whatsapp || "",
+    username: u.username || undefined,
+    storeName: u.store_name || u.storeName || undefined,
+    role: (u.role as UserRole) || "affiliate",
+    status: (u.status as UserStatus) || "pending",
+    plan: (u.plan as PlanType) || undefined,
+    sellerPlan: (u.seller_plan || u.sellerPlan) as SellerPlanType || undefined,
+  };
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const skipListenerRef = useRef(false);
 
-  const loadUser = async (authUser: SupabaseUser) => {
-    setSupabaseUser(authUser);
-    const appUser = await fetchAppUser(authUser.id, authUser.email);
-    setUser(appUser);
-    setIsLoading(false);
-  };
+  // On mount, check if we have a token and load user
+  useEffect(() => {
+    const init = async () => {
+      if (!api.isLoggedIn()) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const { user: userData } = await api.getMe();
+        setUser(mapUserData(userData));
+      } catch {
+        api.clearToken();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    init();
+  }, []);
 
   const refreshUser = async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (authUser) {
-      await loadUser(authUser);
-    } else {
-      setSupabaseUser(null);
+    try {
+      const { user: userData } = await api.getMe();
+      setUser(mapUserData(userData));
+    } catch {
       setUser(null);
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        if (skipListenerRef.current) return; // Skip when login handles it directly
-        if (session?.user) {
-          await loadUser(session.user);
-        } else {
-          setSupabaseUser(null);
-          setUser(null);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      if (session?.user) {
-        loadUser(session.user);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const login = async (identifier: string, password: string): Promise<AppUser> => {
-    skipListenerRef.current = true;
-    try {
-      let email = identifier;
-      // If not an email, look up the email by username via RPC
-      if (!identifier.includes("@")) {
-        const { data: foundEmail, error: lookupErr } = await supabase.rpc("get_email_by_username", { desired_username: identifier });
-        if (lookupErr || !foundEmail) throw new Error("اسم المستخدم غير موجود");
-        email = foundEmail as string;
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw new Error(error.message);
-      
-      const appUser = await fetchAppUser(data.user.id, data.user.email);
-      if (!appUser) throw new Error("فشل جلب بيانات المستخدم");
-      
-      setSupabaseUser(data.user);
-      setUser(appUser);
-      setIsLoading(false);
-      return appUser;
-    } finally {
-      skipListenerRef.current = false;
-    }
+    const { user: userData } = await api.login(identifier, password);
+    const appUser = mapUserData(userData);
+    setUser(appUser);
+    return appUser;
   };
 
   const signupAffiliate = async (data: { name: string; username: string; email: string; phone: string; city: string; password: string }) => {
-    const { error } = await supabase.auth.signUp({
+    await api.signup({
+      name: data.name,
       email: data.email,
+      phone: data.phone,
+      city: data.city,
       password: data.password,
-      options: {
-        data: {
-          name: data.name, phone: data.phone, city: data.city,
-          username: data.username, role: "affiliate",
-        },
-      },
+      role: "affiliate",
+      username: data.username,
     });
-    if (error) throw new Error(error.message);
   };
 
   const signupMerchant = async (data: { name: string; username: string; email: string; storeName: string; phone: string; city: string; password: string }) => {
-    const { error } = await supabase.auth.signUp({
+    await api.signup({
+      name: data.name,
       email: data.email,
+      phone: data.phone,
+      city: data.city,
       password: data.password,
-      options: {
-        data: {
-          name: data.name, phone: data.phone, city: data.city,
-          username: data.username, store_name: data.storeName, role: "product_owner",
-        },
-      },
+      role: "product_owner",
+      username: data.username,
+      store_name: data.storeName,
     });
-    if (error) throw new Error(error.message);
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    api.logout();
     setUser(null);
-    setSupabaseUser(null);
   };
 
   const hasRole = (role: UserRole) => user?.role === role;
@@ -236,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, supabaseUser, isLoading, isAuthenticated: !!user, isPending,
+      user, isLoading, isAuthenticated: !!user, isPending,
       login, signupAffiliate, signupMerchant, logout, hasRole, hasPlan, canAddProduct, refreshUser
     }}>
       {children}

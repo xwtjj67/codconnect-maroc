@@ -1,7 +1,7 @@
 import PublicLayout from "@/components/layouts/PublicLayout";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/services/api";
 import { Mail, ArrowRight, CheckCircle } from "lucide-react";
 
 const ForgotPassword = () => {
@@ -26,10 +26,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw new Error(error.message);
+      await api.forgotPassword(email);
       setSent(true);
     } catch (err: any) {
       setError(err.message || "فشل إرسال رابط الاسترجاع");

@@ -1,11 +1,8 @@
 // ============================================
-// CodConnect API Client (for VPS deployment)
-// ============================================
-// When migrating to self-hosted, replace Supabase imports
-// with this API client throughout the app.
+// CodConnect API Client (Self-Hosted Backend)
 // ============================================
 
-const API_URL = import.meta.env.VITE_API_URL || "https://codconnect.ma/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 class ApiClient {
   private token: string | null = null;
@@ -22,6 +19,15 @@ class ApiClient {
   clearToken() {
     this.token = null;
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("app_user");
+  }
+
+  getToken() {
+    return this.token;
+  }
+
+  isLoggedIn() {
+    return !!this.token;
   }
 
   private async request<T>(
@@ -44,7 +50,6 @@ class ApiClient {
 
     if (response.status === 401) {
       this.clearToken();
-      window.location.href = "/login";
       throw new Error("غير مصرح");
     }
 
@@ -57,6 +62,32 @@ class ApiClient {
     return data;
   }
 
+  // Upload file (multipart)
+  async uploadFile(file: File, folder: string): Promise<string | null> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+
+    const headers: Record<string, string> = {};
+    if (this.token) {
+      headers["Authorization"] = `Bearer ${this.token}`;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.url || null;
+    } catch {
+      return null;
+    }
+  }
+
   // ---- Auth ----
   async signup(data: {
     name: string;
@@ -67,6 +98,7 @@ class ApiClient {
     role: string;
     username?: string;
     store_name?: string;
+    whatsapp?: string;
   }) {
     const result = await this.request<{ token: string; user: any }>("/auth/signup", {
       method: "POST",
@@ -93,12 +125,25 @@ class ApiClient {
     return this.request<{ available: boolean }>(`/auth/check-username/${username}`);
   }
 
-  logout() {
-    this.clearToken();
-    window.location.href = "/login";
+  async forgotPassword(email: string) {
+    return this.request<{ message: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   }
 
-  // ---- Users ----
+  async resetPassword(token: string, password: string) {
+    return this.request<{ message: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    });
+  }
+
+  logout() {
+    this.clearToken();
+  }
+
+  // ---- Users (Admin) ----
   async getUsers() {
     return this.request<{ users: any[] }>("/users");
   }
@@ -110,9 +155,20 @@ class ApiClient {
     });
   }
 
+  async updateUserPlan(userId: string, plan: string, planType: "plan" | "seller_plan") {
+    return this.request(`/users/${userId}/plan`, {
+      method: "PATCH",
+      body: JSON.stringify({ [planType]: plan }),
+    });
+  }
+
   // ---- Products ----
   async getProducts() {
     return this.request<{ products: any[] }>("/products");
+  }
+
+  async getApprovedProducts() {
+    return this.request<{ products: any[] }>("/products/approved");
   }
 
   async getMyProducts() {
@@ -133,10 +189,16 @@ class ApiClient {
     });
   }
 
-  async approveProduct(id: string, status: string) {
-    return this.request(`/products/${id}/approval`, {
+  async approveProduct(id: string, data: any) {
+    return this.request(`/products/${id}/approve`, {
       method: "PATCH",
-      body: JSON.stringify({ approval_status: status }),
+      body: JSON.stringify(data),
+    });
+  }
+
+  async rejectProduct(id: string) {
+    return this.request(`/products/${id}/reject`, {
+      method: "PATCH",
     });
   }
 
@@ -235,6 +297,24 @@ class ApiClient {
 
   async getDistributionLogs() {
     return this.request<{ logs: any[] }>("/distribution/logs");
+  }
+
+  // ---- Referrals ----
+  async getReferralCount() {
+    return this.request<{ count: number }>("/referrals/count");
+  }
+
+  // ---- Dashboard Stats ----
+  async getAdminStats() {
+    return this.request<{ stats: any }>("/stats/admin");
+  }
+
+  async getAffiliateStats() {
+    return this.request<{ stats: any }>("/stats/affiliate");
+  }
+
+  async getMerchantStats() {
+    return this.request<{ stats: any }>("/stats/merchant");
   }
 
   // ---- Health ----
