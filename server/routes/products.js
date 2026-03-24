@@ -12,8 +12,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Get all products (public approved ones)
+// Get all approved products (public)
 router.get("/", async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT p.*, u.name as merchant_name
+       FROM products p
+       LEFT JOIN users u ON u.id = p.merchant_id
+       WHERE p.approval_status = 'approved' AND p.is_active = true
+       ORDER BY p.created_at DESC`
+    );
+    res.json({ products: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: "خطأ في جلب المنتجات" });
+  }
+});
+
+// Get approved products (alias for affiliate marketplace)
+router.get("/approved", async (req, res) => {
   try {
     const result = await db.query(
       `SELECT p.*, u.name as merchant_name
