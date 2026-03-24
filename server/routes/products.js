@@ -4,13 +4,56 @@ const db = require("../config/db");
 const { authenticate, requireRole, requireApproved } = require("../middleware/auth");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
-// File upload config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "../uploads/products")),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+const mediaRootDir = path.join(__dirname, "../uploads/products");
+const imageUploadDir = path.join(mediaRootDir, "images");
+const videoUploadDir = path.join(mediaRootDir, "videos");
+
+[mediaRootDir, imageUploadDir, videoUploadDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 });
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+const productMediaStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const isVideo = file.fieldname === "video" || file.mimetype.startsWith("video/");
+    cb(null, isVideo ? videoUploadDir : imageUploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || (file.mimetype.startsWith("video/") ? ".mp4" : ".jpg");
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext.toLowerCase()}`);
+  },
+});
+
+const productMediaUpload = multer({
+  storage: productMediaStorage,
+  limits: { fileSize: 100 * 1024 * 1024, files: 6 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === "images" && file.mimetype.startsWith("image/")) {
+      return cb(null, true);
+    }
+
+    if (file.fieldname === "video" && file.mimetype.startsWith("video/")) {
+      return cb(null, true);
+    }
+
+    cb(new Error("نوع الملف غير مدعوم"));
+  },
+});
+
+const productImageUpload = multer({
+  storage: productMediaStorage,
+  limits: { fileSize: 10 * 1024 * 1024, files: 10 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      return cb(null, true);
+    }
+
+    cb(new Error("نوع الملف غير مدعوم"));
+  },
+});
 
 // Get all approved products (public)
 router.get("/", async (req, res) => {
@@ -44,6 +87,46 @@ router.get("/approved", async (req, res) => {
   }
 });
 
+// Upload product media before create
+router.post(
+  "/upload",
+  authenticate,
+  requireRole("product_owner"),
+  productMediaUpload.fields([
+    { name: "images", maxCount: 5 },
+    { name: "video", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const imageFiles = Array.isArray(req.files?.images) ? req.files.images : [];
+      const videoFiles = Array.isArray(req.files?.video) ? req.files.video : [];
+
+      if (imageFiles.length === 0 && videoFiles.length === 0) {
+        return res.status(400).json({ error: "لم يتم اختيار ملفات للرفع" });
+      }
+
+      const imageUrls = imageFiles.map((file) => `/uploads/products/images/${file.filename}`);
+      const videoUrl = videoFiles[0] ? `/uploads/products/videos/${videoFiles[0].filename}` : null;
+
+      console.log("✅ Product media uploaded:", {
+        merchantId: req.user.id,
+        images: imageUrls.length,
+        hasVideo: !!videoUrl,
+      });
+
+      res.json({
+        images: imageUrls,
+        image: imageUrls[0] || null,
+        thumbnail: imageUrls[0] || null,
+        video_url: videoUrl,
+      });
+    } catch (err) {
+      console.error("❌ Product media upload error:", err.message);
+      res.status(500).json({ error: "فشل رفع ملفات المنتج" });
+    }
+  }
+);
+
 // Get merchant's products
 router.get("/mine", authenticate, requireRole("product_owner"), async (req, res) => {
   try {
@@ -61,16 +144,48 @@ router.get("/mine", authenticate, requireRole("product_owner"), async (req, res)
 router.post("/", authenticate, requireRole("product_owner"), async (req, res) => {
   try {
     const { name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail } = req.body;
-    
-    const imagesArray = Array.isArray(images) ? images.filter(Boolean) : (images ? [images] : []);
+
+    const normalizedName = typeof name === "string" ? name.trim() : "";
+    const numericCostPrice = Number(cost_price);
+    const numericStock = Number(stock) || 0;
+    const imagesArray = Array.isArray(images)
+      ? images.filter(Boolean)
+      : (typeof images === "string" && images ? [images] : []);
     const primaryImage = image || thumbnail || imagesArray[0] || null;
-    
+
+    if (!normalizedName) {
+      return res.status(400).json({ error: "اسم المنتج مطلوب" });
+    }
+
+    if (!Number.isFinite(numericCostPrice) || numericCostPrice < 0) {
+      return res.status(400).json({ error: "سعر التكلفة غير صالح" });
+    }
+
+    if (!primaryImage) {
+      return res.status(400).json({ error: "أضف صورة واحدة على الأقل للمنتج" });
+    }
+
     const result = await db.query(
       `INSERT INTO products (merchant_id, name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::text[],$13) RETURNING *`,
-      [req.user.id, name, description || null, cost_price, selling_price || null, commission || null, stock || 0, category || null, video_url || null, visibility || "standard", primaryImage, imagesArray, thumbnail || primaryImage]
+      [
+        req.user.id,
+        normalizedName,
+        typeof description === "string" ? description.trim() || null : null,
+        numericCostPrice,
+        selling_price || null,
+        commission || null,
+        numericStock,
+        category || null,
+        video_url || null,
+        visibility || "standard",
+        primaryImage,
+        imagesArray.length > 0 ? imagesArray : [primaryImage],
+        thumbnail || primaryImage,
+      ]
     );
-    console.log("✅ Product created:", result.rows[0].id, "with", imagesArray.length, "images");
+
+    console.log("✅ Product created:", result.rows[0].id, "with", (imagesArray.length || 1), "images");
     res.status(201).json({ product: result.rows[0] });
   } catch (err) {
     console.error("❌ Create product error:", err.message);
@@ -153,9 +268,9 @@ router.patch("/:id/approval", authenticate, requireRole("admin"), async (req, re
 });
 
 // Upload product images
-router.post("/:id/images", authenticate, upload.array("images", 10), async (req, res) => {
+router.post("/:id/images", authenticate, productImageUpload.array("images", 10), async (req, res) => {
   try {
-    const imagePaths = req.files.map(f => `/uploads/products/${f.filename}`);
+    const imagePaths = req.files.map((f) => `/uploads/products/images/${f.filename}`);
     await db.query(
       "UPDATE products SET images = $1, image = $2, updated_at = NOW() WHERE id = $3",
       [imagePaths, imagePaths[0], req.params.id]

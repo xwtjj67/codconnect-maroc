@@ -6,6 +6,8 @@ import api from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import MultiImageUpload from "@/components/shared/MultiImageUpload";
 
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+
 const approvalLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "مقبول", rejected: "مرفوض" };
 const approvalColors: Record<string, string> = { pending: "text-accent bg-accent/10", approved: "text-green-400 bg-green-400/10", rejected: "text-destructive bg-destructive/10" };
 
@@ -19,6 +21,7 @@ const CATEGORIES = [
 ];
 
 interface ProductRow { id: string; name: string; costPrice: number; sellingPrice: number | null; stock: number; approvalStatus: string; image: string | null; }
+interface ProductMediaUploadResponse { images: string[]; image: string | null; thumbnail: string | null; video_url: string | null; }
 
 const MerchantProducts = () => {
   const { user } = useAuth();
@@ -31,39 +34,97 @@ const MerchantProducts = () => {
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
-  const mapProducts = (data: any[]) => data.map(p => ({ id: p.id, name: p.name, costPrice: Number(p.cost_price), sellingPrice: p.selling_price ? Number(p.selling_price) : null, stock: p.stock, approvalStatus: p.approval_status, image: p.image }));
+  const mapProducts = (data: any[]) => data.map((p) => ({
+    id: p.id,
+    name: p.name,
+    costPrice: Number(p.cost_price),
+    sellingPrice: p.selling_price ? Number(p.selling_price) : null,
+    stock: p.stock,
+    approvalStatus: p.approval_status,
+    image: p.image || p.thumbnail || (Array.isArray(p.images) ? p.images[0] : null),
+  }));
 
   useEffect(() => {
     if (!user) return;
     api.getMyProducts().then(({ products: data }) => { setProducts(mapProducts(data)); setLoading(false); }).catch(() => setLoading(false));
   }, [user]);
 
-  const clearForm = () => { setForm({ name: "", costPrice: "", stock: "", description: "", category: "" }); images.forEach(img => URL.revokeObjectURL(img.preview)); setImages([]); setVideoFile(null); };
+  const clearForm = () => {
+    setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
+    images.forEach((img) => URL.revokeObjectURL(img.preview));
+    setImages([]);
+    setVideoFile(null);
+  };
+
+  const uploadProductMedia = async (): Promise<ProductMediaUploadResponse> => {
+    const token = api.getToken();
+    if (!token) {
+      throw new Error("انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى");
+    }
+
+    const formData = new FormData();
+    images.forEach((img) => formData.append("images", img.file));
+    if (videoFile) {
+      formData.append("video", videoFile);
+    }
+
+    const response = await fetch(`${API_URL}/products/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(payload?.error || "فشل رفع ملفات المنتج");
+    }
+
+    return payload as ProductMediaUploadResponse;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !form.name.trim() || !form.costPrice || images.length === 0) { if (images.length === 0) toast({ title: "خطأ", description: "يرجى إضافة صورة واحدة على الأقل", variant: "destructive" }); return; }
+
+    if (!user || !form.name.trim() || !form.costPrice || images.length === 0) {
+      if (images.length === 0) {
+        toast({ title: "خطأ", description: "يرجى إضافة صورة واحدة على الأقل", variant: "destructive" });
+      }
+      return;
+    }
+
     setSubmitting(true);
 
-    const imageUrls: string[] = [];
-    for (const img of images) { const url = await api.uploadFile(img.file, "images"); if (url) imageUrls.push(url); }
-    if (imageUrls.length === 0) { toast({ title: "خطأ", description: "فشل رفع الصور", variant: "destructive" }); setSubmitting(false); return; }
-
-    let videoUrl: string | null = null;
-    if (videoFile) { videoUrl = await api.uploadFile(videoFile, "videos"); }
-
     try {
-      await api.createProduct({ name: form.name.trim(), cost_price: Number(form.costPrice), stock: Number(form.stock) || 0, description: form.description.trim() || null, category: form.category || null, image: imageUrls[0], images: imageUrls, video_url: videoUrl, thumbnail: imageUrls[0] });
+      const media = await uploadProductMedia();
+
+      await api.createProduct({
+        name: form.name.trim(),
+        cost_price: Number(form.costPrice),
+        stock: Number(form.stock) || 0,
+        description: form.description.trim() || null,
+        category: form.category || null,
+        image: media.image,
+        images: media.images,
+        video_url: media.video_url,
+        thumbnail: media.thumbnail,
+      });
+
       toast({ title: "تم بنجاح", description: "تم إضافة المنتج وهو قيد المراجعة" });
-      clearForm(); setShowForm(false);
+      clearForm();
+      setShowForm(false);
       const { products: data } = await api.getMyProducts();
       setProducts(mapProducts(data));
-    } catch (err: any) { toast({ title: "خطأ", description: err.message, variant: "destructive" }); }
-    setSubmitting(false);
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message || "تعذر رفع المنتج", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const approvedCount = products.filter(p => p.approvalStatus === "approved").length;
-  const pendingCount = products.filter(p => p.approvalStatus === "pending").length;
+  const approvedCount = products.filter((p) => p.approvalStatus === "approved").length;
+  const pendingCount = products.filter((p) => p.approvalStatus === "pending").length;
 
   return (
     <MerchantLayout>
