@@ -77,7 +77,6 @@ class ApiClient {
   async uploadFile(file: File, folder: string): Promise<string | null> {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("folder", folder);
 
     const headers: Record<string, string> = {};
     if (this.token) {
@@ -85,16 +84,21 @@ class ApiClient {
     }
 
     try {
-      const response = await fetch(`${API_URL}/upload`, {
+      const response = await fetch(`${API_URL}/upload?folder=${encodeURIComponent(folder)}`, {
         method: "POST",
         headers,
         body: formData,
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        console.error("❌ Upload failed:", errData);
+        return null;
+      }
       const data = await response.json();
       return data.url || null;
-    } catch {
+    } catch (err) {
+      console.error("❌ Upload network error:", err);
       return null;
     }
   }

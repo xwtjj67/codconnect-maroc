@@ -49,6 +49,7 @@ const trainingRoutes = require("./routes/training");
 const serviceRoutes = require("./routes/services");
 const distributionRoutes = require("./routes/distribution");
 const adminRoutes = require("./routes/admin");
+const uploadRoutes = require("./routes/upload");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -58,6 +59,7 @@ app.use("/api/training", trainingRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/distribution", distributionRoutes);
 app.use("/api/stats", adminRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

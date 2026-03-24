@@ -12,8 +12,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Get all products (public approved ones)
+// Get all approved products (public)
 router.get("/", async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT p.*, u.name as merchant_name
+       FROM products p
+       LEFT JOIN users u ON u.id = p.merchant_id
+       WHERE p.approval_status = 'approved' AND p.is_active = true
+       ORDER BY p.created_at DESC`
+    );
+    res.json({ products: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: "خطأ في جلب المنتجات" });
+  }
+});
+
+// Get approved products (alias for affiliate marketplace)
+router.get("/approved", async (req, res) => {
   try {
     const result = await db.query(
       `SELECT p.*, u.name as merchant_name
@@ -87,7 +103,37 @@ router.get("/admin/all", authenticate, requireRole("admin"), async (req, res) =>
   }
 });
 
-// Admin: approve/reject product
+// Admin: approve product with pricing
+router.patch("/:id/approve", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    const { selling_price, commission, visibility, approval_status, category } = req.body;
+    await db.query(
+      `UPDATE products SET approval_status = $1, selling_price = $2, commission = $3, 
+       visibility = $4, category = $5, updated_at = NOW() WHERE id = $6`,
+      [approval_status || "approved", selling_price, commission, visibility || "standard", category || null, req.params.id]
+    );
+    console.log(`✅ Product ${req.params.id} approved`);
+    res.json({ message: "تم تحديث حالة المنتج" });
+  } catch (err) {
+    console.error("❌ Approve product error:", err.message);
+    res.status(500).json({ error: "خطأ في التحديث" });
+  }
+});
+
+// Admin: reject product
+router.patch("/:id/reject", authenticate, requireRole("admin"), async (req, res) => {
+  try {
+    await db.query(
+      "UPDATE products SET approval_status = 'rejected', updated_at = NOW() WHERE id = $1",
+      [req.params.id]
+    );
+    res.json({ message: "تم رفض المنتج" });
+  } catch (err) {
+    res.status(500).json({ error: "خطأ في التحديث" });
+  }
+});
+
+// Admin: approve/reject product (legacy)
 router.patch("/:id/approval", authenticate, requireRole("admin"), async (req, res) => {
   try {
     const { approval_status } = req.body;
