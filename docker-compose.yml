@@ -39,7 +39,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-yZE8vCmsuka}
       POSTGRES_DB: codconnect_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./server/config/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
