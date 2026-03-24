@@ -60,12 +60,13 @@ router.get("/mine", authenticate, requireRole("product_owner"), async (req, res)
 // Create product
 router.post("/", authenticate, requireRole("product_owner"), async (req, res) => {
   try {
-    const { name, description, cost_price, selling_price, commission, stock, category, video_url, visibility } = req.body;
+    const { name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail } = req.body;
     const result = await db.query(
-      `INSERT INTO products (merchant_id, name, description, cost_price, selling_price, commission, stock, category, video_url, visibility)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [req.user.id, name, description, cost_price, selling_price, commission, stock || 0, category, video_url, visibility || "standard"]
+      `INSERT INTO products (merchant_id, name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [req.user.id, name, description, cost_price, selling_price, commission, stock || 0, category, video_url, visibility || "standard", image || null, images || null, thumbnail || null]
     );
+    console.log("✅ Product created:", result.rows[0].id, "with", (images || []).length, "images");
     res.status(201).json({ product: result.rows[0] });
   } catch (err) {
     console.error("❌ Create product error:", err.message);
