@@ -286,6 +286,8 @@ exports.login = async (req, res) => {
         status: user.status,
         phone: user.phone,
         city: user.city,
+        plan: user.plan || null,
+        seller_plan: user.seller_plan || null,
       },
     });
   } catch (err) {
