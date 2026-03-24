@@ -23,7 +23,22 @@ const AffiliateProducts = () => {
   useEffect(() => {
     if (!user) return;
     api.getApprovedProducts().then(({ products: data }) => {
-      const mapped = data.map((p: any) => ({ id: p.id, name: p.name, description: p.description, image: p.image, images: p.images || (p.image ? [p.image] : []), videoUrl: p.video_url || null, sellingPrice: p.selling_price ? Number(p.selling_price) : null, commission: p.commission ? Number(p.commission) : null, category: p.category, visibility: p.visibility }));
+      const mapped = data.map((p: any) => {
+        const mediaImages = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+        const coverImage = p.image || p.thumbnail || mediaImages[0] || null;
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          image: coverImage,
+          images: mediaImages.length > 0 ? mediaImages : (coverImage ? [coverImage] : []),
+          videoUrl: p.video_url || null,
+          sellingPrice: p.selling_price ? Number(p.selling_price) : null,
+          commission: p.commission ? Number(p.commission) : null,
+          category: p.category,
+          visibility: p.visibility,
+        };
+      });
       
       // Smart distribution: use user ID hash to deterministically assign unique products
       const userId = user.id;

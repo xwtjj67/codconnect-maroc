@@ -62,13 +62,13 @@ router.post("/", authenticate, requireRole("product_owner"), async (req, res) =>
   try {
     const { name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail } = req.body;
     
-    // Ensure images is a proper PostgreSQL array
-    const imagesArray = Array.isArray(images) ? images : (images ? [images] : []);
+    const imagesArray = Array.isArray(images) ? images.filter(Boolean) : (images ? [images] : []);
+    const primaryImage = image || thumbnail || imagesArray[0] || null;
     
     const result = await db.query(
       `INSERT INTO products (merchant_id, name, description, cost_price, selling_price, commission, stock, category, video_url, visibility, image, images, thumbnail)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::text[],$13) RETURNING *`,
-      [req.user.id, name, description || null, cost_price, selling_price || null, commission || null, stock || 0, category || null, video_url || null, visibility || "standard", image || null, imagesArray, thumbnail || null]
+      [req.user.id, name, description || null, cost_price, selling_price || null, commission || null, stock || 0, category || null, video_url || null, visibility || "standard", primaryImage, imagesArray, thumbnail || primaryImage]
     );
     console.log("✅ Product created:", result.rows[0].id, "with", imagesArray.length, "images");
     res.status(201).json({ product: result.rows[0] });
