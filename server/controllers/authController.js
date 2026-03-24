@@ -232,10 +232,12 @@ exports.login = async (req, res) => {
 
     const result = await db.query(
       `SELECT u.id, u.email, u.username, u.name, u.password_hash, u.phone, u.city,
-              ur.role, us.status
+              ur.role, us.status,
+              s.plan, s.seller_plan
        FROM users u
        LEFT JOIN user_roles ur ON ur.user_id = u.id
        LEFT JOIN user_statuses us ON us.user_id = u.id
+       LEFT JOIN subscriptions s ON s.user_id = u.id AND s.is_active = true
        WHERE u.email = $1 OR u.username = $1
        LIMIT 1`,
       [identifier]
@@ -284,6 +286,8 @@ exports.login = async (req, res) => {
         status: user.status,
         phone: user.phone,
         city: user.city,
+        plan: user.plan || null,
+        seller_plan: user.seller_plan || null,
       },
     });
   } catch (err) {
