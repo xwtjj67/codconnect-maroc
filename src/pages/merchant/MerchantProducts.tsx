@@ -11,15 +11,6 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 const approvalLabels: Record<string, string> = { pending: "قيد المراجعة", approved: "مقبول", rejected: "مرفوض" };
 const approvalColors: Record<string, string> = { pending: "text-accent bg-accent/10", approved: "text-green-400 bg-green-400/10", rejected: "text-destructive bg-destructive/10" };
 
-const CATEGORIES = [
-  { value: "cosmetics", label: "تجميل" },
-  { value: "electronics", label: "الكترونيات" },
-  { value: "fashion", label: "ملابس" },
-  { value: "home", label: "منزل" },
-  { value: "fitness", label: "رياضة" },
-  { value: "other", label: "أخرى" },
-];
-
 interface ProductRow { id: string; name: string; costPrice: number; sellingPrice: number | null; stock: number; approvalStatus: string; image: string | null; }
 interface ProductMediaUploadResponse { images: string[]; image: string | null; thumbnail: string | null; video_url: string | null; }
 
@@ -30,7 +21,7 @@ const MerchantProducts = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ name: "", costPrice: "", stock: "", description: "", category: "" });
+  const [form, setForm] = useState({ name: "", costPrice: "", stock: "", description: "" });
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
@@ -50,7 +41,7 @@ const MerchantProducts = () => {
   }, [user]);
 
   const clearForm = () => {
-    setForm({ name: "", costPrice: "", stock: "", description: "", category: "" });
+    setForm({ name: "", costPrice: "", stock: "", description: "" });
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
     setVideoFile(null);
@@ -58,53 +49,43 @@ const MerchantProducts = () => {
 
   const uploadProductMedia = async (): Promise<ProductMediaUploadResponse> => {
     const token = api.getToken();
-    if (!token) {
-      throw new Error("انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى");
-    }
+    if (!token) throw new Error("انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى");
 
     const formData = new FormData();
     images.forEach((img) => formData.append("images", img.file));
-    if (videoFile) {
-      formData.append("video", videoFile);
-    }
+    if (videoFile) formData.append("video", videoFile);
 
     const response = await fetch(`${API_URL}/products/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
     const payload = await response.json().catch(() => null);
-    if (!response.ok) {
-      throw new Error(payload?.error || "فشل رفع ملفات المنتج");
-    }
-
+    if (!response.ok) throw new Error(payload?.error || "فشل رفع ملفات المنتج");
     return payload as ProductMediaUploadResponse;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user || !form.name.trim() || !form.costPrice || images.length === 0) {
-      if (images.length === 0) {
-        toast({ title: "خطأ", description: "يرجى إضافة صورة واحدة على الأقل", variant: "destructive" });
-      }
-      return;
-    }
+    if (!user) return;
+    if (!form.name.trim()) { toast({ title: "خطأ", description: "يرجى إدخال اسم المنتج", variant: "destructive" }); return; }
+    if (!form.costPrice || Number(form.costPrice) <= 0) { toast({ title: "خطأ", description: "يرجى إدخال سعر التكلفة", variant: "destructive" }); return; }
+    if (images.length === 0) { toast({ title: "خطأ", description: "يرجى إضافة صورة واحدة على الأقل", variant: "destructive" }); return; }
 
     setSubmitting(true);
 
     try {
+      // Step 1: Upload media
       const media = await uploadProductMedia();
 
+      // Step 2: Create product record
       await api.createProduct({
         name: form.name.trim(),
         cost_price: Number(form.costPrice),
         stock: Number(form.stock) || 0,
         description: form.description.trim() || null,
-        category: form.category || null,
         image: media.image,
         images: media.images,
         video_url: media.video_url,
@@ -117,7 +98,8 @@ const MerchantProducts = () => {
       const { products: data } = await api.getMyProducts();
       setProducts(mapProducts(data));
     } catch (err: any) {
-      toast({ title: "خطأ", description: err.message || "تعذر رفع المنتج", variant: "destructive" });
+      console.error("❌ Product creation failed:", err);
+      toast({ title: "خطأ في إنشاء المنتج", description: err.message || "تعذر رفع المنتج", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -143,29 +125,80 @@ const MerchantProducts = () => {
           <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
             <h2 className="font-semibold">إضافة منتج جديد</h2>
             <MultiImageUpload images={images} onChange={setImages} maxImages={5} disabled={submitting} />
-            <div className="space-y-1"><label className="text-sm font-medium">فيديو المنتج (اختياري)</label><div className="flex items-center gap-3"><button type="button" onClick={() => document.getElementById("video-input")?.click()} disabled={submitting} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50"><Video className="h-4 w-4" />{videoFile ? videoFile.name : "اختر فيديو"}</button>{videoFile && <button type="button" onClick={() => setVideoFile(null)} className="text-xs text-destructive hover:underline">حذف</button>}</div><input id="video-input" type="file" accept="video/*" className="hidden" disabled={submitting} onChange={e => { if (e.target.files?.[0]) setVideoFile(e.target.files[0]); e.target.value = ""; }} /></div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">فيديو المنتج (اختياري)</label>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => document.getElementById("video-input")?.click()} disabled={submitting} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50">
+                  <Video className="h-4 w-4" />{videoFile ? videoFile.name : "اختر فيديو"}
+                </button>
+                {videoFile && <button type="button" onClick={() => setVideoFile(null)} className="text-xs text-destructive hover:underline">حذف</button>}
+              </div>
+              <input id="video-input" type="file" accept="video/*" className="hidden" disabled={submitting} onChange={e => { if (e.target.files?.[0]) setVideoFile(e.target.files[0]); e.target.value = ""; }} />
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1"><label className="text-sm font-medium">اسم المنتج *</label><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" /></div>
-              <div className="space-y-1"><label className="text-sm font-medium">سعر التكلفة (DH) *</label><input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} required min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" /></div>
-              <div className="space-y-1"><label className="text-sm font-medium">المخزون</label><input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" /></div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">الفئة</label>
-                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                  <option value="">اختر الفئة (اختياري)</option>
-                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
+                <label className="text-sm font-medium">اسم المنتج *</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">سعر التكلفة (DH) *</label>
+                <input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} required min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium">المخزون</label>
+                <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} min="0" className="w-full h-10 px-3 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" dir="ltr" />
               </div>
             </div>
-            <div className="space-y-1"><label className="text-sm font-medium">الوصف</label><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" /></div>
-            <div className="flex gap-3"><button type="submit" disabled={submitting} className="px-6 py-2.5 rounded-lg gradient-teal text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50">{submitting && <Loader2 className="h-4 w-4 animate-spin" />}إضافة المنتج</button><button type="button" onClick={() => { setShowForm(false); clearForm(); }} className="px-6 py-2.5 rounded-lg bg-secondary/50 text-muted-foreground text-sm hover:bg-secondary transition-colors">إلغاء</button></div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">الوصف</label>
+              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" />
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" disabled={submitting} className="px-6 py-2.5 rounded-lg gradient-teal text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50">
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}إضافة المنتج
+              </button>
+              <button type="button" onClick={() => { setShowForm(false); clearForm(); }} className="px-6 py-2.5 rounded-lg bg-secondary/50 text-muted-foreground text-sm hover:bg-secondary transition-colors">إلغاء</button>
+            </div>
           </form>
         )}
 
         {loading ? <div className="glass-card p-12 text-center"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" /></div> : products.length === 0 ? (
-          <div className="glass-card p-12 text-center space-y-3"><div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto"><Package className="h-8 w-8 text-muted-foreground" /></div><p className="text-lg font-medium text-muted-foreground">لا توجد منتجات بعد</p><p className="text-sm text-muted-foreground">أضف منتجك الأول ليتم مراجعته من طرف الإدارة</p></div>
+          <div className="glass-card p-12 text-center space-y-3">
+            <div className="h-16 w-16 rounded-full bg-secondary/50 flex items-center justify-center mx-auto"><Package className="h-8 w-8 text-muted-foreground" /></div>
+            <p className="text-lg font-medium text-muted-foreground">لا توجد منتجات بعد</p>
+            <p className="text-sm text-muted-foreground">أضف منتجك الأول ليتم مراجعته من طرف الإدارة</p>
+          </div>
         ) : (
-          <div className="glass-card overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border/50"><th className="text-right p-4 font-medium text-muted-foreground">الصورة</th><th className="text-right p-4 font-medium text-muted-foreground">المنتج</th><th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th><th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th><th className="text-right p-4 font-medium text-muted-foreground">المخزون</th><th className="text-right p-4 font-medium text-muted-foreground">الحالة</th></tr></thead>
-            <tbody>{products.map(p => (<tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors"><td className="p-4">{p.image ? <img src={p.image} alt={p.name} loading="lazy" className="h-10 w-10 rounded-lg object-cover" /> : <div className="h-10 w-10 rounded-lg bg-secondary/50 flex items-center justify-center"><Package className="h-4 w-4 text-muted-foreground" /></div>}</td><td className="p-4 font-medium">{p.name}</td><td className="p-4 text-muted-foreground">{p.costPrice} DH</td><td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "يحدد من الإدارة"}</td><td className="p-4 text-muted-foreground">{p.stock}</td><td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${approvalColors[p.approvalStatus]}`}>{approvalLabels[p.approvalStatus]}</span></td></tr>))}</tbody></table></div></div>
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-right p-4 font-medium text-muted-foreground">الصورة</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">المخزون</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map(p => (
+                    <tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors">
+                      <td className="p-4">
+                        {p.image ? <img src={p.image} alt={p.name} loading="lazy" className="h-10 w-10 rounded-lg object-cover" /> : <div className="h-10 w-10 rounded-lg bg-secondary/50 flex items-center justify-center"><Package className="h-4 w-4 text-muted-foreground" /></div>}
+                      </td>
+                      <td className="p-4 font-medium">{p.name}</td>
+                      <td className="p-4 text-muted-foreground">{p.costPrice} DH</td>
+                      <td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "يحدد من الإدارة"}</td>
+                      <td className="p-4 text-muted-foreground">{p.stock}</td>
+                      <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${approvalColors[p.approvalStatus]}`}>{approvalLabels[p.approvalStatus]}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
     </MerchantLayout>

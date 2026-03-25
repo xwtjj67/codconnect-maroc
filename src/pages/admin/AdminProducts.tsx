@@ -12,17 +12,8 @@ import { toast } from "sonner";
 interface AdminProduct {
   id: string; name: string; merchantName: string; merchantId: string;
   costPrice: number; sellingPrice: number | null; commission: number | null;
-  stock: number; approvalStatus: string; visibility: string; category: string | null;
+  stock: number; approvalStatus: string; visibility: string; image: string | null;
 }
-
-const CATEGORIES = [
-  { value: "cosmetics", label: "تجميل" },
-  { value: "electronics", label: "الكترونيات" },
-  { value: "fashion", label: "ملابس" },
-  { value: "home", label: "منزل" },
-  { value: "fitness", label: "رياضة" },
-  { value: "other", label: "أخرى" },
-];
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -32,7 +23,6 @@ const AdminProducts = () => {
   const [editSellingPrice, setEditSellingPrice] = useState("");
   const [editCommission, setEditCommission] = useState("");
   const [editVisibility, setEditVisibility] = useState("standard");
-  const [editCategory, setEditCategory] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Merchant limits
@@ -50,9 +40,11 @@ const AdminProducts = () => {
         costPrice: Number(p.cost_price), sellingPrice: p.selling_price ? Number(p.selling_price) : null,
         commission: p.commission ? Number(p.commission) : null,
         stock: p.stock, approvalStatus: p.approval_status, visibility: p.visibility,
-        category: p.category,
+        image: p.image || p.thumbnail || (Array.isArray(p.images) && p.images[0]) || null,
       })));
-    } catch { }
+    } catch (err) {
+      console.error("❌ Failed to fetch products:", err);
+    }
     setLoading(false);
   };
 
@@ -63,7 +55,6 @@ const AdminProducts = () => {
     setEditSellingPrice(p.sellingPrice?.toString() || "");
     setEditCommission(p.commission?.toString() || "");
     setEditVisibility(p.visibility);
-    setEditCategory(p.category || "");
   };
 
   const handleApproveWithPricing = async () => {
@@ -75,7 +66,7 @@ const AdminProducts = () => {
     setSaving(true);
     try {
       await api.approveProduct(editProduct.id, {
-        selling_price: sp, commission: comm, visibility: editVisibility, approval_status: "approved", category: editCategory,
+        selling_price: sp, commission: comm, visibility: editVisibility, approval_status: "approved",
       });
       toast.success("تمت الموافقة وتحديث الأسعار بنجاح");
       setEditProduct(null);
@@ -93,7 +84,7 @@ const AdminProducts = () => {
     setSaving(true);
     try {
       await api.updateProduct(editProduct.id, {
-        selling_price: sp, commission: comm, visibility: editVisibility, category: editCategory,
+        selling_price: sp, commission: comm, visibility: editVisibility,
       });
       toast.success("تم تحديث الأسعار بنجاح");
       setEditProduct(null);
@@ -148,9 +139,9 @@ const AdminProducts = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/50">
+                    <th className="text-right p-4 font-medium text-muted-foreground">الصورة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المنتج</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">المورد</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">الفئة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">التكلفة</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">سعر البيع</th>
                     <th className="text-right p-4 font-medium text-muted-foreground">العمولة</th>
@@ -161,9 +152,11 @@ const AdminProducts = () => {
                 <tbody>
                   {displayed.map(p => (
                     <tr key={p.id} className="border-b border-border/30 last:border-0 hover:bg-secondary/20 transition-colors">
+                      <td className="p-4">
+                        {p.image ? <img src={p.image} alt={p.name} loading="lazy" className="h-10 w-10 rounded-lg object-cover" /> : <div className="h-10 w-10 rounded-lg bg-secondary/50 flex items-center justify-center"><Package className="h-4 w-4 text-muted-foreground" /></div>}
+                      </td>
                       <td className="p-4 font-medium">{p.name}</td>
                       <td className="p-4 text-muted-foreground">{p.merchantName}</td>
-                      <td className="p-4 text-muted-foreground">{CATEGORIES.find(c => c.value === p.category)?.label || p.category || "—"}</td>
                       <td className="p-4 text-muted-foreground">{p.costPrice} DH</td>
                       <td className="p-4 text-muted-foreground">{p.sellingPrice ? `${p.sellingPrice} DH` : "—"}</td>
                       <td className="p-4">{p.commission ? <span className="gold-badge">{p.commission} DH</span> : "—"}</td>
@@ -200,13 +193,6 @@ const AdminProducts = () => {
               </div>
               <div className="space-y-2"><Label>سعر البيع (DH)</Label><Input type="number" min={0} value={editSellingPrice} onChange={e => setEditSellingPrice(e.target.value)} dir="ltr" /></div>
               <div className="space-y-2"><Label>عمولة المسوق (DH)</Label><Input type="number" min={0} value={editCommission} onChange={e => setEditCommission(e.target.value)} dir="ltr" /></div>
-              <div className="space-y-2">
-                <Label>الفئة</Label>
-                <Select value={editCategory} onValueChange={setEditCategory}>
-                  <SelectTrigger><SelectValue placeholder="اختر الفئة" /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label>مستوى الرؤية</Label>
                 <Select value={editVisibility} onValueChange={setEditVisibility}>
@@ -256,7 +242,6 @@ const AdminProducts = () => {
                 );
               })
             )}
-            <p className="text-xs text-muted-foreground text-center">الحد يحدد عدد المنتجات المقبولة القصوى لكل مورد. المنتجات الإضافية تبقى قيد المراجعة.</p>
           </div>
         </DialogContent>
       </Dialog>
